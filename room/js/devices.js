@@ -75,6 +75,18 @@ const SOUNDS = { // 环境音（assets/ambience，Mixkit 免费授权）；fan �
   playground: '孩子们在玩', school: '教室里的声音', fire: '柴火噼啪', fan: '风扇转着',
 };
 const SOUND_FILE = { summer_day: 'summer_night' }; // 白天的虫鸣暂时借用夏夜虫鸣
+function inferSound(tags = []) {
+  const t = tags.join(' ');
+  if (/鸟|羽毛|枝/.test(t)) return 'birds';
+  if (/海|河|水|雨|潮/.test(t)) return 'waves';
+  if (/街|车|路|城市/.test(t)) return 'street';
+  if (/植物|树|叶|花|草|森林/.test(t)) return 'wind';
+  if (/天空|云|山|风/.test(t)) return 'wind';
+  if (/吃|饭|餐|食物|厨房/.test(t)) return 'canteen';
+  if (/电脑|键盘|书桌|屏幕|屋|房间/.test(t)) return 'fan';
+  const h = new Date().getHours();
+  return (h < 6 || h >= 19) ? 'summer_night' : 'summer_day';
+}
 const stamp = (d) => { const y = String(d.getFullYear()).slice(2), m = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0'); return `'${y} ${m} ${dd}`; };
 const clamp01 = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 
@@ -185,13 +197,20 @@ async function analyzeAI(it) {
   const st = window.JRLXTwin ? await window.JRLXTwin.aiStatus() : { vision: false };
   if (!st.vision) return null;
   let url; try { url = await frameOf(it); } catch (e) { return null; }
-  for (const max_tokens of [1600, 3200]) { // deepseek-flash 先想再答，额度给少了正文会是空的；空了就加额度再试一次
+  for (const max_tokens of [3200]) { // deepseek-flash 会先推理再回答；一次给足额度，避免首轮正文为空后重复等待
     try {
       const out = await window.JRLXTwin.aiChat('vision', [{ role: 'user', content: [{ type: 'image_url', image_url: { url } }, { type: 'text', text: VISION }] }],
-        { temperature: 0.8, max_tokens, timeout: 90000 });
+        { temperature: 0.8, max_tokens, timeout: 60000 });
       const m = String(out || '').replace(/```(?:json)?/g, '').match(/\{[\s\S]*\}/); if (!m) continue;
       const j = JSON.parse(m[0]);
-      const a = { tags: (j.tags || []).map(String).slice(0, 6), tod: String(j.tod || ''), sense: String(j.sense || '').slice(0, 40), sound: SOUNDS[j.sound] ? j.sound : null, ai: true };
+      const tags = (j.tags || []).map(String).slice(0, 6);
+      const a = {
+        tags,
+        tod: String(j.tod || ''),
+        sense: String(j.sense || '光从旁边慢慢移过来，空气里留着一点那天熟悉的味道。').slice(0, 40),
+        sound: SOUNDS[j.sound] ? j.sound : inferSound(tags),
+        ai: true
+      };
       try { localStorage.setItem(cacheKey(it), JSON.stringify(a)); } catch (e) {}
       return a;
     } catch (e) { console.warn('[记忆] 分析失败', e); }

@@ -2,9 +2,11 @@
 
 ## 长期在线地址
 
-手机直接打开：<https://2929916628-hub.github.io/jiuri-laixin-demo/>
+手机直接打开：<https://jrlx-ai.2929916628.workers.dev/>
 
-线上版不依赖这台电脑开机，主流程、房间、声音和新建空间都能体验。新建的空间与上传素材只保存在当前浏览器（IndexedDB），不会跨手机同步；AI 数字分身使用内置示例规则回话。
+GitHub Pages 镜像：<https://2929916628-hub.github.io/jiuri-laixin-demo/>
+
+线上版不依赖这台电脑开机，主流程、房间、声音和新建空间都能体验。新建的空间与上传素材只保存在当前浏览器（IndexedDB），不会跨手机同步。照片理解和数字人对话由 Cloudflare Worker 调用 DeepSeek，DeepSeek key 只保存在 Worker Secret 中。
 
 ## 第一次打开
 
