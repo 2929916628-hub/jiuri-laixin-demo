@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#120e0a" />
+  <title>旧日来信 · 2009 那个夏天</title>
+  <link rel="stylesheet" href="css/style.css?v=20261024b" />
+  <link rel="stylesheet" href="css/devices.css?v=20261024b" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="pano" aria-label="2009 年的卧室，可以拖动环顾"></canvas>
+    <div class="screen-tint" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div id="spots" class="spots" aria-hidden="true"></div>
+
+    <header class="hud">
+      <div class="hud-left">
+        <span class="brand">旧日来信</span>
+        <span class="dot">·</span>
+        <span id="spaceName" class="space-name">2009 · 那个夏天</span>
+      </div>
+      <div class="hud-right">
+        <button id="btnSound" class="tool" aria-pressed="false">声音 关</button>
+        <button id="btnGuide" class="tool">说明</button>
+        <button id="btnLegend" class="tool">证据</button>
+      </div>
+    </header>
+
+    <div id="hint" class="hint">拖动 · 环顾 · 点物件</div>
+    <div id="whisper" class="whisper" role="status" aria-live="polite"></div>
+
+    <aside id="card" class="card" hidden></aside>
+
+    <div id="legend" class="legend" hidden>
+      <div class="legend-paper">
+        <p class="legend-kicker">这件东西，是从哪儿来的</p>
+        <h3>证据等级</h3>
+        <ul>
+          <li><b data-level="A">A</b><span>真实出现</span><p>原话、原图、原文件，能翻到出处。</p></li>
+          <li><b data-level="B">B</b><span>你确认过</span><p>你补充过，但原始材料里没有。</p></li>
+          <li><b data-level="C">C</b><span>推测</span><p>从照片、语气、旁人的话里推出来的。</p></li>
+          <li><b data-level="D">D</b><span>模型生成</span><p>为了让空间完整而补的，不是你要的那件事。</p></li>
+        </ul>
+        <p class="legend-foot">宁可说「记录里没有」，也不编。</p>
+      </div>
+    </div>
+
+    <div id="boot" class="boot"><span>正在把房间点亮</span></div>
+  </main>
+
+  <script src="../shared/twin.js"></script>
+  <script src="../shared/film.js"></script>
+  <script type="module" src="js/app.js?v=20261024b"></script>
+</body>
+</html>

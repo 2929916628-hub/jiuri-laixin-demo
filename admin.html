@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>旧日来信 · 数据后台</title>
+  <link rel="stylesheet" href="assets/fonts/lxgw-marker-gothic.css" />
+  <link rel="stylesheet" href="assets/fonts/noto-sans-sc.css" />
+  <style>
+    :root { --ink: #1b0d00; --ink-2: #3a2a1c; --small: #6b5644; --mustard: #c89a3e; --wax: #b0423a; --cream: #fff6e3; --card: #fffaf1;
+      --hand: "LXGW Marker Gothic", "Noto Sans SC", sans-serif; --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: var(--sans); color: var(--ink);
+      background: url(assets/fig/paper_tex.png) center / 420px, #f1e9db; background-blend-mode: multiply; }
+    main { max-width: 980px; margin: 0 auto; padding: 40px 20px 80px; }
+    h1 { margin: 0; font-family: var(--hand); font-weight: 400; font-size: 34px; }
+    .sub { margin: 6px 0 0; font-size: 13px; color: var(--small); word-break: break-all; }
+    .tabs { display: flex; gap: 8px; margin: 26px 0 18px; }
+    .tabs button { padding: 7px 16px; border-radius: 999px; border: 1.5px solid var(--ink); background: transparent; font: 500 14px var(--sans); color: var(--ink); cursor: pointer; }
+    .tabs button.on { background: var(--ink); color: var(--cream); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+    .sp { padding: 16px 16px 14px; border-radius: 14px; background: url(assets/fig/paper_tex.png) center / 400px, var(--card); background-blend-mode: multiply;
+      box-shadow: 0 6px 18px rgba(42, 23, 8, .14); display: flex; flex-direction: column; gap: 8px; }
+    .sp h3 { margin: 0; font-family: var(--hand); font-weight: 400; font-size: 21px; display: flex; align-items: center; gap: 8px; }
+    .stamp { width: 12px; height: 15px; border-radius: 2px; flex: none; }
+    .meta { margin: 0; font-size: 12.5px; line-height: 1.6; color: var(--small); }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { padding: 1px 8px; border-radius: 4px; background: rgba(200, 154, 62, .2); font-size: 12px; color: var(--ink-2); }
+    .tag.twin { background: rgba(43, 53, 102, .12); }
+    .media { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+    .media a { flex: none; width: 64px; height: 64px; border-radius: 8px; overflow: hidden; background: #e7dfd2; display: block; }
+    .media img, .media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .none { font-size: 12px; color: rgba(107, 86, 68, .7); }
+    .acts { display: flex; gap: 8px; margin-top: 4px; }
+    .acts button { flex: 1; height: 34px; border-radius: 9px; border: 1.5px solid var(--ink); background: transparent; font: 500 13px var(--sans); cursor: pointer; }
+    .acts .go { background: var(--ink); color: var(--cream); }
+    .acts .danger { border-color: var(--wax); color: var(--wax); }
+    .empty { padding: 50px 0; text-align: center; color: var(--small); }
+    .toast { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 9px 18px; border-radius: 999px; background: rgba(27, 13, 0, .88); color: var(--cream);
+      font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+    .toast.on { opacity: 1; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>数据后台</h1>
+    <p class="sub" id="sub">正在读取…</p>
+    <div class="tabs"><button type="button" data-tab="live" class="on">使用中</button><button type="button" data-tab="trash">回收站</button></div>
+    <div class="grid" id="grid"></div>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="js/store.js"></script>
+  <script>
+    (() => {
+      const $ = s => document.querySelector(s);
+      const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const time = t => t ? new Date(t * 1000).toLocaleString('zh-CN', { hour12: false }) : '';
+      const SCENE = { bedroom: '我的卧室', classroom: '教室', playground: '小区游乐场' };
+      let tab = 'live', spaces = [], folder = '';
+      let tt = 0; const toast = m => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 1800); };
+
+      async function load() {
+        if (!JRLXStore.ok) { $('#sub').textContent = '要用「启动预览.cmd」打开，后台才读得到数据。'; return; }
+        try { const d = await JRLXStore.list(); spaces = d.spaces || []; folder = d.folder || ''; }
+        catch (e) { $('#sub').textContent = '读不到数据：' + e.message; return; }
+        render();
+      }
+      function render() {
+        const live = spaces.filter(s => !s.deleted), trash = spaces.filter(s => s.deleted);
+        $('#sub').textContent = `使用中 ${live.length} 个 · 回收站 ${trash.length} 个 · 存在 ${folder}`;
+        const list = (tab === 'live' ? live : trash).sort((a, b) => b.createdAt - a.createdAt);
+        $('#grid').innerHTML = list.length ? list.map(card).join('') : `<p class="empty">${tab === 'live' ? '还没有存下的空间。在 Demo 里新建一个就会出现在这里。' : '回收站是空的。'}</p>`;
+      }
+      function card(s) {
+        const f = s.form || {};
+        const media = (s.media || []).map(m => `<a href="${esc(m.url)}" target="_blank" title="${esc(m.name)}">${(m.type || '').startsWith('video')
+          ? `<video src="${esc(m.url)}#t=0.5" muted preload="metadata"></video>` : `<img src="${esc(m.url)}" alt="" loading="lazy">`}</a>`).join('');
+        const acts = s.deleted
+          ? `<button class="go" data-act="restore" data-id="${s.id}">恢复</button><button class="danger" data-act="purge" data-id="${s.id}">彻底删除</button>`
+          : `<button data-act="trash" data-id="${s.id}">移到回收站</button>`;
+        return `<article class="sp">
+          <h3><span class="stamp" style="background:${esc(s.stamp || '#c89a3e')}"></span>${esc(s.to || '未命名')}</h3>
+          <p class="meta">${esc(s.addr || '')}${s.subj ? ' · ' + esc(s.subj) : ''}<br>${s.deleted ? '删除于 ' + time(s.deletedAt) : '建于 ' + time(s.createdAt)}</p>
+          <div class="tags"><span class="tag">${s.kind === 'self' ? '为自己' : '为TA'}</span><span class="tag">${esc(SCENE[s.scene] || s.scene || '卧室')}</span>
+            ${s.twin ? `<span class="tag twin">数字分身 · ${esc(s.twin.name)}${s.twin.source === 'preset' ? '（示例）' : ''}</span>` : ''}
+            ${f.period ? `<span class="tag">${esc(f.period)}</span>` : ''}</div>
+          ${media ? `<div class="media">${media}</div>` : '<p class="none">没有上传材料</p>'}
+          <div class="acts">${acts}</div></article>`;
+      }
+      document.addEventListener('click', async e => {
+        const t = e.target.closest('.tabs button');
+        if (t) { tab = t.dataset.tab; document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b === t)); return render(); }
+        const b = e.target.closest('[data-act]'); if (!b) return;
+        const { act, id } = b.dataset;
+        if (act === 'purge' && !confirm('彻底删除后，这个空间和它的照片视频都找不回来了。确定吗？')) return;
+        try { await JRLXStore.act(id, act); toast({ trash: '已移到回收站，可以在回收站恢复', restore: '已恢复，刷新 Demo 就能看到', purge: '已彻底删除' }[act]); load(); }
+        catch (err) { toast('没成功：' + err.message); }
+      });
+      load();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+环境音来源：Mixkit（https://mixkit.co/free-sound-effects/），Mixkit Sound Effects Free License：
+可免费用于个人和商业项目，不要求署名（不可单独转售音效本身）。每段截取前 28 秒，加了淡入淡出并统一响度。
+
+rain.mp3          1253  Light rain loop
+storm.mp3         2401  Thunder rumble and light rain
+wind.mp3          2658  Wind blowing ambience
+birds.mp3         2472  Morning birds
+summer_night.mp3  1789  Summer night crickets loop
+night_market.mp3  368   People in fair ambience and laughter
+canteen.mp3       444   Restaurant crowd talking ambience
+street.mp3        369   Urban city sounds and light car traffic
+waves.mp3         1189  Sea waves ambience
+stream.mp3        2454  River water flowing
+playground.mp3    372   Park playground with kids
+school.mp3        2254  Children voices in school
+fire.mp3          1330  Campfire crackles
+（fan 风扇声是代码里用 WebAudio 合成的，没有文件）

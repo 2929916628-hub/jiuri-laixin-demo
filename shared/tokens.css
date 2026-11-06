@@ -1,0 +1,86 @@
+/* 旧日来信 · 公共样式（所有 parts 共用，只由总负责人维护）
+   色值、字号取自 Figma 高保真与设计规范 v1.1（面板 11–13）。
+   用法：<link rel="stylesheet" href="../../shared/tokens.css" /> 放在自己 css 前面。 */
+
+@import url("../assets/fonts/lxgw-marker-gothic.css");
+@import url("../assets/fonts/noto-sans-sc.css");
+
+:root {
+  /* 颜色 —— 只用这些名字，不要自己写新色值 */
+  --ink: #1b0d00;       /* 墨黑：线稿、主文字 */
+  --ink-2: #3a2a1c;     /* 字段标签 */
+  --small: #6b5644;     /* 小字 / 提示 / 占位 */
+  --blue: #2b3566;      /* 信封蓝墨 */
+  --mustard: #c89a3e;   /* 芥黄：错位色块、返回图标底 */
+  --sage: #8fa37e;      /* 灰绿 */
+  --ochre: #b5654a;     /* 赭红 */
+  --wax: #b0423a;       /* 火漆红 */
+  --cream: #fff6e3;     /* 说明文字垫底 */
+  --paper: #f7f6f2;     /* 白纸 */
+  --card: #fffaf1;      /* 卡片纸 */
+
+  /* 字体 */
+  --hand: "LXGW Marker Gothic", "Noto Sans SC", "PingFang SC", sans-serif;  /* 标题、标签 */
+  --sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;     /* 正文小字 */
+
+  /* 字号（px，按 402 宽设计稿） */
+  --fs-title: 28px;     /* 页面大标题 */
+  --fs-h2: 20px;
+  --fs-label: 15px;     /* 字段标签，用 --hand */
+  --fs-body: 14px;
+  --fs-small: 13px;     /* 小字，用 --sans Medium */
+
+  /* 动效曲线 */
+  --spring: cubic-bezier(.2, .9, .25, 1.15);  /* 弹一下 */
+  --out: cubic-bezier(.2, .8, .2, 1);         /* 快进慢停 */
+  --shadow-paper: 0 12px 30px rgba(42, 23, 8, .25);
+
+  /* 布局：屏幕 402 × 874；底栏占 760 以下，tab 页内容别放进去 */
+  --tabbar-top: 760px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+body { font-family: var(--hand); color: var(--ink); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+img { -webkit-user-drag: none; user-select: none; }
+
+/* 一屏手机：所有内容放进 <main class="screen"> */
+.screen {
+  position: relative; width: 402px; height: 874px; overflow: hidden;
+  user-select: none; -webkit-user-select: none;
+  background: var(--paper);
+}
+
+/* ---------- 可直接用的纸张底 ---------- */
+.tex-paper  { background: url(../assets/fig/paper_tex.png) center / 420px, var(--paper); background-blend-mode: multiply; }  /* 白纸纹 */
+.tex-card   { background: url(../assets/fig/paper_tex.png) center / 400px, var(--card);  background-blend-mode: multiply; }  /* 卡片纸 */
+.tex-box    { background: url(../assets/fig/box_bg.png) -169px -232px / 755px 1343px no-repeat, #b98a55; }                 /* 纸箱内壁 */
+.tex-lined  { background: url(../assets/fig/_lined_raw.png) -132px 8px / 751px 751px no-repeat, #f4f3ef; }                 /* 横线纸 */
+
+/* 返回图标（Figma 组件「返回图标」：手绘尖括号 + 错位芥黄圆块） */
+.jrlx-back { position: absolute; left: 20px; top: 62px; width: 32px; height: 32px; background: url(back.svg) center / contain no-repeat; transition: transform .15s var(--out); z-index: 30; }
+.jrlx-back:active { transform: scale(.9); }
+
+/* 小字说明垫底（横线纸上用） */
+.jrlx-note { padding: 8px 12px; border-radius: 10px; background: rgba(255, 246, 227, .88); font-family: var(--sans); font-weight: 500; font-size: var(--fs-small); line-height: 1.6; color: var(--small); }
+
+/* ---------- 独立预览（直接打开自己的 part 时，bridge.js 自动加 .jrlx-solo） ---------- */
+html.jrlx-solo { background: #17110c; }
+.jrlx-solo body { display: flex; align-items: center; justify-content: center; background: #17110c; }
+.jrlx-solo .screen { flex: none; transform-origin: 50% 50%; border-radius: 48px; box-shadow: 0 0 0 10px #0b0806, 0 0 0 12px #3a332c, 0 40px 80px rgba(0, 0, 0, .55); }
+.jrlx-solo-tabbar {
+  position: absolute; left: 5px; top: 760px; width: 393px; height: 101px; border-radius: 35px; z-index: 999; pointer-events: none;
+  border: 2px dashed rgba(176, 66, 58, .7); background: rgba(176, 66, 58, .08);
+  display: flex; align-items: center; justify-content: center;
+  font: 500 13px var(--sans); color: var(--wax);
+}
+.jrlx-solo-log {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 1000;
+  padding: 8px 16px; border-radius: 999px; background: rgba(27, 13, 0, .85); color: #fff6e3;
+  font: 13px var(--sans); opacity: 0; transition: opacity .25s; pointer-events: none;
+}
+.jrlx-solo-log.on { opacity: 1; }
+
+/* iPhone Safari：祖先上的 -webkit-user-select: none 会让输入框点不进去、打不了字，输入控件要单独放开 */
+input, textarea, select, [contenteditable] { -webkit-user-select: text; user-select: text; }

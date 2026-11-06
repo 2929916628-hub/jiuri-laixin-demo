@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>旧日来信 · 我的</title>
+  <!-- 公共样式和 bridge 必须先引入，路径不要改 -->
+  <link rel="stylesheet" href="../../shared/tokens.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 整个部分只有这一块 402×874 的屏幕；多个页面用 .page 切换 -->
+  <main class="screen">
+
+    <!-- 首页：个人中心（tab 首页：底栏可见，内容不超过 y=760） -->
+    <section class="page on" data-page="home">
+      <h1 class="htitle">我的</h1>
+
+      <!-- 寄信人卡：头像做成邮票（同底栏「我的」图标），账号用信封上的红框邮编格 -->
+      <div class="sender tex-card rise">
+        <img class="tape" src="../../assets/fig/tape_lavender.png" alt="" />
+        <div class="stamp-wrap">
+          <div class="stamp">
+            <svg viewBox="12 9.5 41 47" aria-hidden="true">
+              <path d="M15.5 12.5 L48.5 12.2 L48.8 51.5 L15.2 51.8 Z" fill="#8FA37E" transform="translate(2.5 2.5)"/>
+              <g fill="none" stroke="#1B0D00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15.5 12.5 L48.5 12.2 L48.8 51.5 L15.2 51.8 Z"/>
+                <path d="M32 17 C37 16.9 41 20.9 41 26 C41 31 37 35 32 35 C27 35.1 23 31.1 23 26 C23 21 27 17.1 32 17 Z"/>
+                <path d="M20 47 Q21.5 38 32 38 Q42.5 38 44 47"/>
+                <path d="M29 29.6 Q32 32 35 29.6" stroke-width="2"/>
+              </g>
+              <circle cx="28.6" cy="25.4" r="1.5" fill="#1B0D00"/><circle cx="35.4" cy="25.4" r="1.5" fill="#1B0D00"/>
+            </svg>
+          </div>
+        </div>
+        <img class="pmark" src="../../assets/fig/postmark.svg" alt="" />
+        <p class="s-kicker">寄信人</p>
+        <p class="s-name" id="pName">小满</p>
+        <div class="s-zip" aria-label="用户账号 1354521"><i>1</i><i>3</i><i>5</i><i>4</i><i>5</i><i>2</i><i>1</i></div>
+        <p class="s-bio" id="pBio">这个人还没写简介</p>
+      </div>
+
+      <!-- 菜单写在一张横线信纸上，每行正好压在横线上 -->
+      <div class="sheet rise d1">
+        <p class="glabel"><span>账号</span></p>
+        <button type="button" class="row" data-goto="account"><span class="row-t">账号与安全</span><i class="chev"></i></button>
+        <button type="button" class="row" data-goto="privacy"><span class="row-t">隐私设置</span><i class="chev"></i></button>
+        <p class="glabel"><span>通用</span></p>
+        <button type="button" class="row" data-goto="notif"><span class="row-t">通知设置</span><i class="chev"></i></button>
+        <button type="button" class="row" data-goto="display"><span class="row-t">界面与显示</span><i class="chev"></i></button>
+        <button type="button" class="row" data-goto="perm"><span class="row-t">系统权限</span><i class="chev"></i></button>
+      </div>
+    </section>
+
+    <!-- 设置 · 账号与安全 -->
+    <section class="page" data-page="account">
+      <button type="button" class="jrlx-back" data-goto="home" aria-label="返回"></button>
+      <h1 class="ptitle">账号与安全</h1>
+
+      <div class="card full" style="top:120px">
+        <button type="button" class="row h49" data-toast="演示版暂不支持修改">
+          <span class="row-t">手机号</span><span class="row-v ink2">＋86137****1220</span><i class="chev"></i>
+        </button>
+        <button type="button" class="row h49" data-toast="演示版暂不支持修改">
+          <span class="row-t">登录密码</span><span class="row-v">设置</span><i class="chev"></i>
+        </button>
+      </div>
+
+      <div class="card full" style="top:256px">
+        <div class="row h49">
+          <span class="row-t">记住登录信息</span>
+          <button type="button" class="switch" id="swRemember" role="switch" aria-checked="true"><i class="knob"></i></button>
+        </div>
+        <button type="button" class="row h49" data-toast="演示版暂不支持修改">
+          <span class="row-t">登录设备管理</span><i class="chev"></i>
+        </button>
+      </div>
+
+      <button type="button" class="card full quit-btn" style="top:392px" id="btnQuit">注销账号</button>
+    </section>
+
+    <!-- 设置 · 隐私设置 -->
+    <section class="page" data-page="privacy">
+      <button type="button" class="jrlx-back" data-goto="home" aria-label="返回"></button>
+      <h1 class="ptitle">隐私设置</h1>
+      <div class="card full" style="top:120px">
+        <button type="button" class="row h49" data-doc="用户协议"><span class="row-t">用户协议</span><i class="chev"></i></button>
+        <button type="button" class="row h49" data-doc="隐私政策"><span class="row-t">隐私政策</span><i class="chev"></i></button>
+      </div>
+    </section>
+
+    <!-- 设置 · 系统权限 -->
+    <section class="page" data-page="perm">
+      <button type="button" class="jrlx-back" data-goto="home" aria-label="返回"></button>
+      <h1 class="ptitle">系统权限</h1>
+      <div class="card full" style="top:132px">
+        <button type="button" class="row h48" data-perm="perm_location" data-name="位置信息" data-def="1">
+          <span class="row-t">允许位置信息权限访问</span><span class="perm-st"></span><i class="chev"></i>
+        </button>
+        <button type="button" class="row h48" data-perm="perm_calendar" data-name="日历" data-def="0">
+          <span class="row-t">允许日历权限访问</span><span class="perm-st"></span><i class="chev"></i>
+        </button>
+        <button type="button" class="row h48" data-perm="perm_photos" data-name="照片" data-def="1">
+          <span class="row-t">允许照片权限访问</span><span class="perm-st"></span><i class="chev"></i>
+        </button>
+        <button type="button" class="row h48" data-perm="perm_camera" data-name="相机" data-def="0">
+          <span class="row-t">允许相机权限访问</span><span class="perm-st"></span><i class="chev"></i>
+        </button>
+        <button type="button" class="row h48" data-perm="perm_mic" data-name="麦克风" data-def="0">
+          <span class="row-t">允许麦克风权限访问</span><span class="perm-st"></span><i class="chev"></i>
+        </button>
+      </div>
+      <p class="hint">点击条目可切换授权状态（演示）</p>
+    </section>
+
+    <!-- 设置 · 通知设置 -->
+    <section class="page" data-page="notif">
+      <button type="button" class="jrlx-back" data-goto="home" aria-label="返回"></button>
+      <h1 class="ptitle">通知设置</h1>
+      <div class="card full" style="top:132px">
+        <div class="row h49">
+          <span class="row-t">消息通知</span>
+          <button type="button" class="switch" id="swNotifMain" role="switch" aria-checked="true"><i class="knob"></i></button>
+        </div>
+      </div>
+      <div class="card full" style="top:205px">
+        <div class="row h49">
+          <span class="row-t">应用内顶部浮层提醒</span>
+          <button type="button" class="switch sub" id="swNotifFloat" role="switch" aria-checked="true"><i class="knob"></i></button>
+        </div>
+        <div class="row h49">
+          <span class="row-t">接受设备通知栏提醒</span>
+          <button type="button" class="switch sub" id="swNotifDevice" role="switch" aria-checked="true"><i class="knob"></i></button>
+        </div>
+      </div>
+      <p class="hint" style="top:330px">关闭「消息通知」后，下方提醒方式将不可用</p>
+    </section>
+
+    <!-- 设置 · 界面与显示 -->
+    <section class="page" data-page="display">
+      <button type="button" class="jrlx-back" data-goto="home" aria-label="返回"></button>
+      <h1 class="ptitle">界面与显示</h1>
+      <div class="card full" style="top:132px">
+        <div class="row h49">
+          <span class="row-t">深色模式</span>
+          <button type="button" class="switch" id="swDark" role="switch" aria-checked="false"><i class="knob"></i></button>
+        </div>
+        <div class="row h49">
+          <span class="row-t">支持横屏模式</span>
+          <button type="button" class="switch" id="swLandscape" role="switch" aria-checked="false"><i class="knob"></i></button>
+        </div>
+      </div>
+      <div class="card full" style="top:271px">
+        <button type="button" class="row h44" id="btnFont"><span class="row-t">字体大小</span><span class="row-v" id="fontVal">标准</span><i class="chev"></i></button>
+        <button type="button" class="row h44" data-toast="暂只支持简体中文"><span class="row-t">语言</span><span class="row-v">简体中文</span><i class="chev"></i></button>
+      </div>
+    </section>
+
+    <!-- 协议文档页（用户协议 / 隐私政策共用） -->
+    <section class="page" data-page="doc">
+      <button type="button" class="jrlx-back" data-goto="privacy" aria-label="返回"></button>
+      <h1 class="ptitle" id="docTitle">用户协议</h1>
+      <div class="doc-body jrlx-note" id="docBody"></div>
+    </section>
+
+    <!-- 注销账号确认层 -->
+    <div class="mask" id="quitMask"></div>
+    <div class="quit-sheet" id="quitSheet" role="dialog" aria-modal="true" aria-label="确认注销账号">
+      <p class="q-title">确认注销账号？</p>
+      <p class="q-sub">注销后账号数据将无法恢复</p>
+      <button type="button" class="q-danger" id="quitConfirm">确认注销</button>
+      <button type="button" class="q-cancel" id="quitCancel">取消</button>
+    </div>
+
+  </main>
+
+  <script src="../../shared/bridge.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

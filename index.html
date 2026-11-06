@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#1b0d00" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>旧日来信 · 记忆空间 Demo</title>
+  <link rel="icon" href="assets/fig/app_icon.png" />
+  <link rel="stylesheet" href="assets/fonts/lxgw-marker-gothic.css" />
+  <link rel="stylesheet" href="assets/fonts/noto-sans-sc.css" />
+  <link rel="stylesheet" href="css/app.css?v=20261026j" />
+  <link rel="stylesheet" href="css/twin.css" />
+</head>
+<body>
+  <div class="stage">
+    <aside class="guide" aria-label="演示说明">
+      <p class="guide-kicker">课程项目 · 交互 Demo</p>
+      <h1>旧日来信</h1>
+      <p class="guide-sub">01.1 记忆空间 · 预设信件 → 拆信进入房间 → 上拉新建空间</p>
+      <ol class="guide-steps">
+        <li>点 App 图标打开</li>
+        <li>直接进入已经装好 12 封预设信的空间</li>
+        <li>上下拖动信封；点中间那封翻面</li>
+        <li>背面<b>点火漆</b>，拆信进入那间屋子</li>
+        <li>在纸箱底部<b>按住“添加空间”往上拉</b>，新建另一段记忆</li>
+      </ol>
+      <div class="guide-actions">
+        <button type="button" data-act="restart">从头开始</button>
+        <button type="button" data-act="letters">直接看信件</button>
+        <button type="button" data-act="sound" aria-pressed="true">声音 开</button>
+        <a class="guide-link" href="admin.html" target="_blank" rel="noopener">数据后台</a>
+      </div>
+      <div class="guide-qr" id="guideQr" hidden>
+        <div class="qr-img" id="qrImg"></div>
+        <div class="qr-text">
+          <p class="qr-k">手机扫码体验</p>
+          <p class="qr-via" id="qrVia"></p>
+          <p class="qr-url" id="qrUrl"></p>
+          <div class="qr-ips" id="qrIps"></div>
+        </div>
+      </div>
+      <p class="guide-note" id="guideNote">手机同一 WiFi 打开同一地址，全屏体验更好。</p>
+    </aside>
+
+    <div class="device" id="device">
+      <div class="screen" id="screen">
+
+        <!-- 01 启动页 -->
+        <section class="view" id="v-launch" data-view="launch">
+          <div class="launch-bg"></div>
+          <div class="launch-deco" id="launchDeco"></div>
+          <img class="launch-glow" src="assets/fig/icon_glow.svg" alt="" />
+          <button class="app-icon" id="appIcon" type="button" aria-label="打开 旧日来信">
+            <img src="assets/fig/app_icon.png" alt="" />
+          </button>
+          <p class="app-name">旧日来信</p>
+          <div class="launch-front" id="launchFront"></div>
+        </section>
+
+        <!-- 02 空纸箱 + 03 为谁创建（同一屏：纸盘从箱底扯出来） -->
+        <section class="view" id="v-box" data-view="box">
+          <div class="box-bg"></div>
+          <div class="box-shade"></div>
+          <p class="corner-mark">记忆空间</p>
+          <button type="button" class="box-back" id="boxBack">‹ 返回信件</button>
+          <h2 class="ask" id="ask">为谁创建记忆空间？</h2>
+          <svg class="pull-arrow" id="pullArrow" viewBox="0 0 120 110" aria-hidden="true">
+            <path d="M60 104 V14 M16 56 L60 12 L104 56" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p class="pull-hint" id="pullHint">按住往上拖</p>
+          <div class="disc-wrap" id="discWrap">
+            <div class="disc" id="disc">
+              <div class="disc-paper"></div>
+              <div class="disc-divider" id="discDivider"></div>
+            </div>
+            <div class="disc-labels" id="discLabels">
+              <button type="button" class="opt" data-opt="self"><b>自己</b><span>邂逅曾经的自己</span></button>
+              <button type="button" class="opt" data-opt="ta"><b>他人</b><span>再次遇见记忆中的TA</span></button>
+            </div>
+          </div>
+          <div class="pull-zone" id="pullZone"></div>
+        </section>
+
+        <!-- 表单（为自己 / 为TA，复用） -->
+        <section class="view" id="v-form" data-view="form">
+          <div class="form-bg"></div>
+          <p class="corner-mark">记忆空间</p>
+          <img class="tape" src="assets/fig/tape_lavender.png" alt="" />
+          <div class="sheet" id="sheet">
+            <div class="sheet-paper"></div>
+            <div class="sheet-body" id="sheetBody"></div>
+          </div>
+          <input type="file" id="fileMulti" accept="image/*,video/*" multiple hidden />
+          <input type="file" id="fileOne" accept="image/*" hidden />
+        </section>
+
+        <!-- 信件滚轮 -->
+        <section class="view" id="v-letters" data-view="letters">
+          <div class="letters-bg"></div>
+          <div class="wheel" id="wheel"></div>
+          <div class="box-inner-shadow"></div>
+          <button type="button" class="straighten" id="straighten" aria-pressed="true">
+            <span class="chk"><svg viewBox="0 0 18 18"><path d="M4 9.4 L7.6 12.8 L14 5.6" fill="none" stroke="#f4ecdd" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            摆正中间那封
+          </button>
+          <p class="letters-count" id="lettersCount">来信 · 12 封</p>
+          <button type="button" class="add-space" id="addSpace" aria-label="按住向上拉，添加记忆空间">
+            <span class="as-tab" aria-hidden="true">
+              <span class="as-tab-plus">+</span>
+              <span class="as-tab-copy"><b>添加空间</b><small>按住向上拉</small></span>
+              <svg class="as-tab-arrow" viewBox="0 0 28 34">
+                <path d="M14 29 V7 M5 15 L14 5 L23 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="face front as-envelope" aria-hidden="true">
+              <span class="emboss"></span>
+              <span class="as-plus">+</span>
+              <span class="stamp"><span class="sf"></span><span class="as-stamp-plus">+</span></span>
+              <img class="postmark" src="assets/fig/postmark.svg" alt="" />
+              <span class="to">添加空间</span>
+              <span class="addr">按住向上拉 · 打开一段新的记忆</span>
+              <span class="rule"></span>
+              <span class="from">空白信封 · 等你填写</span>
+              <svg class="as-arrow" viewBox="0 0 28 34">
+                <path d="M14 29 V7 M5 15 L14 5 L23 15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </section>
+
+        <!-- 定制 / 我的：组员各自做的部分（parts/custom、parts/mine），用 iframe 接进来；
+             占位卡片只在 iframe 没加载出来时看得到 -->
+        <section class="view" id="v-create" data-view="create">
+          <div class="plain-bg wood"></div>
+          <div class="soon"><p class="soon-k">定制</p><h3>纪念册</h3><p>模板 → 素材 → 编辑 → 预览 → 导出<br/><span class="soon-hint">正在打开…</span></p></div>
+          <iframe class="part-frame" data-part="custom" title="定制" allow="autoplay"></iframe>
+        </section>
+        <section class="view" id="v-mine" data-view="mine">
+          <div class="plain-bg cream"></div>
+          <div class="soon"><p class="soon-k">我的</p><h3>个人中心</h3><p>账号 · 隐私 · 偏好<br/><span class="soon-hint">正在打开…</span></p></div>
+          <iframe class="part-frame" data-part="mine" title="我的" allow="autoplay"></iframe>
+        </section>
+
+        <!-- 底栏（多屏共用） -->
+        <nav class="tabbar" id="tabbar" aria-label="底栏">
+          <div class="tab-paper"></div>
+          <svg class="tab-circle" id="tabCircle" viewBox="0 0 113.793 101.629" aria-hidden="true"></svg>
+          <button type="button" class="tab" data-tab="space"><span class="ti" data-icon="space"></span><span class="tl">空间</span></button>
+          <button type="button" class="tab" data-tab="create"><span class="ti" data-icon="create"></span><span class="tl">定制</span></button>
+          <button type="button" class="tab" data-tab="mine"><span class="ti" data-icon="mine"></span><span class="tl">我的</span></button>
+        </nav>
+
+        <!-- 记忆空间（房间） -->
+        <section class="view" id="v-room" data-view="room">
+          <img class="room-ph" id="roomPh" src="assets/fig/room_desk.jpg" alt="" />
+          <iframe class="room-frame" id="roomFrame" title="那间屋子" allow="autoplay"></iframe>
+          <button type="button" class="back-btn room-back" id="roomBack" aria-label="回到信件"></button>
+          <p class="rotate-hint" id="rotateHint">横过手机，看得更全</p>
+        </section>
+
+        <div class="veil" id="veil"></div>
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+  </div>
+  <script src="assets/lib/qrcode.js"></script>
+  <script src="shared/twin.js"></script>
+  <script src="shared/film.js"></script>
+  <script src="js/twin-build.js?v=20261026a"></script>
+  <script src="js/store.js"></script>
+  <script src="js/app.js?v=20261026j"></script>
+</body>
+</html>

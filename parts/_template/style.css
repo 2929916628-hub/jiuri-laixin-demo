@@ -1,0 +1,14 @@
+/* 本部分自己的样式：所有选择器都写在 .screen 里面，颜色只用 tokens.css 的变量 */
+
+.screen .page { position: absolute; inset: 0; visibility: hidden; opacity: 0; transition: opacity .3s var(--out), visibility 0s .3s; }
+.screen .page.on { visibility: visible; opacity: 1; transition: opacity .3s var(--out); }
+
+.screen .title { position: absolute; left: 0; right: 0; top: 120px; margin: 0; text-align: center; font-weight: 400; font-size: var(--fs-title); }
+.screen .hello { position: absolute; left: 40px; right: 40px; top: 200px; margin: 0; text-align: center; }
+.screen .btn {
+  position: absolute; left: 66px; width: 270px; height: 48px; top: 300px; border-radius: 12px;
+  background: var(--ink); color: var(--cream); font-size: 17px;
+  transition: transform .15s var(--out);
+}
+.screen .btn:active { transform: scale(.96); }
+.screen .btn.ghost { top: 364px; background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }

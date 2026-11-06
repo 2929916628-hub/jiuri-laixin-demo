@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>旧日来信 · 模板部分</title>
+  <!-- 公共样式和 bridge 必须先引入，路径不要改 -->
+  <link rel="stylesheet" href="../../shared/tokens.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 整个部分只有这一块 402×874 的屏幕；多个页面用 .page 切换 -->
+  <main class="screen tex-paper">
+
+    <!-- 首页（tab 页：底栏可见，内容别超过 760px） -->
+    <section class="page on" data-page="home">
+      <h1 class="title">模板首页</h1>
+      <p class="jrlx-note hello">你好，这是给 <b id="who"></b> 的部分。</p>
+      <button type="button" class="btn" data-goto="detail">进入子页面</button>
+      <button type="button" class="btn ghost" data-jump="letters">去信件（跳到别的部分）</button>
+    </section>
+
+    <!-- 子页面（全屏：隐藏底栏，左上角返回） -->
+    <section class="page" data-page="detail">
+      <button type="button" class="jrlx-back" data-goto="home" aria-label="返回"></button>
+      <h1 class="title">子页面</h1>
+      <p class="jrlx-note hello">点了 <b id="count">0</b> 次（刷新后还在，用的是 JRLX.save）</p>
+      <button type="button" class="btn" id="plus">点一下</button>
+    </section>
+
+  </main>
+
+  <script src="../../shared/bridge.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

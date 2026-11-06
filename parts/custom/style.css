@@ -1,0 +1,233 @@
+/* 定制 · 纪念册：每一屏 = 背景层（可换色/纹理）+ Figma 导出图 + 动态叠加 + 透明热区。坐标全部是 402×874 设计稿像素
+   动效、返回按钮、纸盘照「空间」部分（css/app.css）同一套写法 */
+.album { background: #1b1510; font-family: var(--sans); }
+.stage { position: absolute; inset: 0; overflow: hidden; }
+
+.view { position: absolute; inset: 0; overflow: hidden; }
+.view .bg { position: absolute; inset: 0; background: #b07a48 center / cover no-repeat; }
+.view .shot { position: absolute; left: 0; top: 0; width: 402px; height: 874px; pointer-events: none; }
+.view .shot.blurred { filter: blur(7px) brightness(.96); transform: scale(1.04); }
+.view .deco, .view .ui { position: absolute; inset: 0; }
+.view .deco { pointer-events: none; }
+.view.leaving { pointer-events: none; }
+
+/* 面板弹起 / 收起 / 跟手下拉用的克隆层（只截面板那一截） */
+.fx { position: absolute; inset: 0; pointer-events: none; z-index: 5; will-change: transform; }
+.fx-pad { position: absolute; left: 0; top: 874px; width: 402px; height: 40px; }
+
+/* 热区：透明按钮；?debug 时描边方便对位 */
+.hot { position: absolute; display: block; border-radius: 12px; cursor: pointer; touch-action: manipulation; }
+.hot:focus-visible { outline: 2px solid #fff; outline-offset: 2px; background: rgba(255, 255, 255, .12); }
+.debug .hot { outline: 1.5px dashed rgba(255, 0, 80, .9); background: rgba(255, 0, 80, .08); }
+
+/* 返回：Figma「返回图标」（芥黄色块 + 手绘尖括号），和「空间」表单里的同一个 */
+.back-icon { position: absolute; z-index: 3; background: url(../../shared/back.svg) center / contain no-repeat; transition: transform .15s var(--out); }
+.back-icon::before { content: ""; position: absolute; inset: -12px; }   /* 扩大点击范围 */
+.back-icon:active { transform: scale(.9); }
+/* 跨页翻页箭头：和返回键同源的手绘尖括号，往左/往右各镜像一下 */
+.turn-icon { position: absolute; width: 18px; height: 18px; background: url(../../shared/back.svg) center / contain no-repeat; opacity: .78; pointer-events: none; }
+.turn-icon.next { transform: scaleX(-1); }
+/* 「空间」纸箱页那种纸质返回按钮 */
+.back-pill {
+  position: absolute; z-index: 7; padding: 9px 15px; border: 1.5px solid var(--ink); border-radius: 12px;
+  background: url(../../assets/fig/paper_tex.png) center / 300px, #f4ecdd; background-blend-mode: multiply;
+  font: 14px var(--hand); color: var(--ink); filter: drop-shadow(0 3px 5px rgba(42, 23, 8, .24));
+  transition: transform .15s var(--out);
+}
+.back-pill:active { transform: scale(.95); }
+.blank-tip { position: absolute; left: 0; right: 0; text-align: center; font: 11px var(--sans); color: rgba(255, 246, 227, .78); text-shadow: 0 1px 4px rgba(42, 23, 8, .5); pointer-events: none; }
+
+/* 新建入口的纸盘（和「空间」纸盘同一个组件：600 圆 + 每 15° 一个孔） */
+.entry-shade { position: absolute; inset: 0; background: linear-gradient(rgba(250, 242, 228, .18), rgba(250, 242, 228, .06) 55%, rgba(27, 13, 0, .14)); }
+.disc-wrap { position: absolute; left: -99px; top: 560px; width: 600px; height: 600px; transform-origin: 50% 100%; will-change: transform, filter; z-index: 4; touch-action: none; }
+.disc { position: absolute; inset: 0; will-change: transform; }
+.disc-paper {
+  position: absolute; inset: 0;
+  background: url(../../assets/fig/disc_paper.png) 0 0 / 761px 761px, #f6f4ef;
+  -webkit-mask: url(../../assets/fig/disc_mask.svg) 0 0 / 600px 600px no-repeat;
+          mask: url(../../assets/fig/disc_mask.svg) 0 0 / 600px 600px no-repeat;
+}
+.disc-divider { position: absolute; left: 299.5px; top: 4px; width: 1px; height: 296px; background: rgba(27, 13, 0, .7); transform-origin: 50% 100%; }
+.disc-labels { position: absolute; inset: 0; }
+.opt { position: absolute; left: 0; top: 0; width: 220px; margin-left: -110px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; font-family: var(--hand); will-change: transform, opacity; }
+.opt b { font-weight: 400; font-size: 17px; color: #000; }
+.opt span { font-size: 15px; color: var(--ink-2); white-space: nowrap; }
+.opt::after { content: "轻点进入"; font-family: var(--sans); font-size: 12px; color: var(--small); opacity: 0; transform: translateY(-4px); transition: opacity .3s, transform .3s; }
+.opt.centered::after { opacity: 1; transform: none; }
+
+/* 动态叠加 */
+.patch { position: absolute; }
+.ring { position: absolute; border-radius: 50%; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2b2622; }
+.swatch { position: absolute; border-radius: 50%; }
+.card-pick { position: absolute; border: 2.5px solid #2b2622; border-radius: 8px; }
+.chip-pick { position: absolute; border: 2px solid #2b2622; border-radius: 999px; background: rgba(43, 38, 34, .06); }
+.photo { position: absolute; object-fit: cover; }
+.photo-grid { position: absolute; display: grid; gap: 3px; padding: 3px; border-radius: 6px; background: #eee; overflow: hidden; }
+.photo-grid img { width: 100%; height: 100%; min-height: 0; object-fit: cover; border-radius: 3px; }
+.photo-grid b { display: grid; place-items: center; border-radius: 3px; color: #fff; font: 600 13px var(--sans); }
+.count-tag { position: absolute; padding: 2px 8px; border-radius: 10px; background: rgba(27, 13, 0, .78); color: #fff; font: 500 11px/1.5 var(--sans); }
+.tint { position: absolute; mix-blend-mode: multiply; }
+.sprite { position: absolute; background-repeat: no-repeat; }
+.sticker { position: absolute; transform: translate(-50%, -50%); filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, .18)); }
+.page-text { position: absolute; display: flex; align-items: center; padding: 4px 6px; border-radius: 3px; line-height: 1.35; white-space: pre-wrap; word-break: break-all; overflow: hidden; }
+.pager { position: absolute; display: grid; place-items: center; color: #333; font: 500 11px var(--sans); }
+.dots i { position: absolute; width: 8px; height: 8px; border-radius: 50%; }
+
+/* 输入框（文字编辑面板里的段落框） */
+.text-input { position: absolute; resize: none; border: 0; border-radius: 10px; padding: 9px 13px; outline: 0; font: 14px/1.5 var(--sans); color: #333; }
+.text-input::placeholder { color: #b3b3b3; }
+.text-input:focus { box-shadow: 0 0 0 2px rgba(43, 38, 34, .45); }
+
+/* 描边滑杆的拖动区域 */
+.slider { position: absolute; touch-action: none; cursor: pointer; }
+
+/* 独立预览时自己的轻提示（嵌入总入口时用总入口的 toast） */
+.toast { position: absolute; left: 50%; bottom: 120px; z-index: 50; max-width: 340px; padding: 9px 16px; border-radius: 18px; background: rgba(27, 13, 0, .86); color: var(--cream); font: 13px/1.4 var(--sans); white-space: nowrap; opacity: 0; pointer-events: none; transform: translate(-50%, 10px); transition: opacity .18s, transform .18s; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+.native-picker { position: fixed; left: -10px; top: -10px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+/* ---------- 导入：信封滚轮（照总入口 css/app.css「信件滚轮」同一套，路径改成从 parts/custom 出发） ---------- */
+.letters-bg { position: absolute; inset: 0; background: url(../../assets/fig/box_bg.png) -255px -418px / 933px 1658px no-repeat, #b98a55; }
+.wheel { position: absolute; inset: 0; perspective: 900px; cursor: grab; font-family: var(--hand); touch-action: none; }
+.wheel:active { cursor: grabbing; }
+.item { position: absolute; left: 33px; width: 336px; will-change: top, opacity; }
+.item .tilt, .item .flat { position: absolute; left: 0; width: 336px; top: 50%; }
+.tilt { height: 54px; margin-top: -27px; }
+.tilt .tf, .tilt .tb { position: absolute; inset: 0; background: center / 100% 100% no-repeat; }
+.tilt .tf { background-image: url(../../assets/fig/env_tilt_front.png); filter: drop-shadow(0 6px 7px rgba(42, 23, 8, .3)); }
+.tilt .tb { background-image: url(../../assets/fig/env_tilt_back.png); filter: drop-shadow(0 10px 7px rgba(42, 23, 8, .3)); }
+.tilt.is-front .tb, .tilt.is-back .tf { display: none; }
+.tf .t-name { position: absolute; left: 68px; width: 200px; top: 17px; text-align: center; font-size: 13px; letter-spacing: 3px; color: rgba(43, 53, 102, .85); white-space: nowrap; }
+.tf .t-stamp { position: absolute; left: 290px; top: 8px; width: 24px; height: 13px; border: 2px dashed #fbf7ee; }
+.tf .t-zip { position: absolute; left: 20px; top: 9px; display: flex; gap: 2.5px; }
+.tf .t-zip i { width: 6px; height: 6px; border: .8px solid rgba(176, 66, 58, .75); }
+.tb .t-line { position: absolute; inset: 0; background: url(../../assets/fig/env_flap_line.svg) center / 100% 100% no-repeat; }
+.tb .t-sub { position: absolute; left: 58px; width: 220px; top: 36px; text-align: center; font-size: 11px; letter-spacing: 3px; color: rgba(43, 53, 102, .8); white-space: nowrap; }
+.flat { height: 216px; margin-top: -108px; transform-style: preserve-3d; }
+.card { position: absolute; inset: 0; }
+.face { position: absolute; inset: 0; border-radius: 4px; border: 1px solid rgba(255, 255, 255, .55);
+  background: url(../../assets/fig/paper_tex.png) center / cover, #efe5d2; background-blend-mode: multiply;
+  box-shadow: 0 14px 13px rgba(42, 23, 8, .32), 0 2px 1.5px rgba(42, 23, 8, .22); }
+.face .emboss { position: absolute; left: 9px; top: 9px; width: 316px; height: 196px; border: 1px solid rgba(122, 92, 58, .16); border-radius: 2px; }
+.face .zip { position: absolute; left: 21px; top: 21px; display: flex; gap: 5px; }
+.face .zip i { width: 16px; height: 16px; border: 1.2px solid rgba(176, 66, 58, .75); font: normal 11.5px/14px "Share Tech Mono", monospace; text-align: center; color: rgba(43, 53, 102, .85); }
+.face .stamp { position: absolute; left: 269px; top: 19px; width: 44px; height: 54px; background: #fbf7ee; border: 3px dashed #fff; border-radius: 1px; box-shadow: 0 1px 2px rgba(42, 23, 8, .25); overflow: hidden; }
+.face .stamp .sf { position: absolute; left: 1px; top: 1px; width: 36px; height: 46px; }
+.face .stamp img { position: absolute; left: 10px; top: 6px; width: 18px; height: 27px; }
+.face .stamp em { position: absolute; left: 3px; top: 36px; font: normal 6px/1 var(--hand); color: rgba(255, 255, 255, .9); }
+.face .postmark { position: absolute; left: 213px; top: 43px; width: 86px; height: 44px; transform: rotate(8deg); opacity: .9; }
+.face .to { position: absolute; left: 43px; top: 103px; font-size: 27px; letter-spacing: 2px; color: var(--blue); white-space: nowrap; }
+.face .addr { position: absolute; left: 45px; top: 141px; font-size: 12px; letter-spacing: 1.5px; color: rgba(43, 53, 102, .85); white-space: nowrap; }
+.face .rule { position: absolute; left: 43px; top: 167px; width: 150px; height: 1px; background: rgba(122, 92, 58, .18); }
+.face .from { position: absolute; right: 22px; top: 181px; font-size: 10px; letter-spacing: 1px; color: rgba(43, 53, 102, .7); }
+.face .pick-hint { position: absolute; left: 43px; top: 181px; font-family: var(--sans); font-size: 10px; color: rgba(43, 53, 102, .55); opacity: 0; transition: opacity .3s; }
+.item.center .pick-hint { opacity: 1; }
+.box-inner-shadow { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(42, 23, 8, .55) 0%, rgba(42, 23, 8, 0) 16%, rgba(42, 23, 8, 0) 78%, rgba(42, 23, 8, .45) 90%); z-index: 2; }
+.straighten { position: absolute; left: 56px; top: 66px; z-index: 9; display: flex; align-items: center; gap: 8px; padding: 9px 16px 9px 12px; border: 1.5px solid var(--ink); border-radius: 12px;
+  background: url(../../assets/fig/paper_tex.png) center / 300px, #f4ecdd; background-blend-mode: multiply; font: 14px var(--hand); color: var(--ink); filter: drop-shadow(0 3px 4px rgba(42, 23, 8, .28)); }
+.straighten .chk { width: 18px; height: 18px; border: 1.6px solid var(--ink); border-radius: 4px; background: var(--ink); display: grid; place-items: center; transition: background .2s; }
+.straighten .chk svg { width: 18px; height: 18px; transition: opacity .2s; }
+.straighten[aria-pressed="false"] .chk { background: transparent; }
+.straighten[aria-pressed="false"] .chk svg { opacity: 0; }
+.letters-count { position: absolute; right: 22px; top: 71px; margin: 0; z-index: 9; font: 19px var(--hand); color: var(--ink); }
+.pick-btn { position: absolute; z-index: 9; background-size: 402px 874px; background-repeat: no-repeat; transition: transform .15s var(--out); }
+.pick-btn:active { transform: scale(.97); }
+.view .back-icon { z-index: 9; }
+
+/* ---------- 选模板：跟手轮播 ---------- */
+.tpl-area { position: absolute; overflow: visible; touch-action: none; cursor: grab; }
+.tpl-area:active { cursor: grabbing; }
+.tpl-track { position: absolute; left: 0; top: 0; width: 0; height: 235px; will-change: transform; }
+.tpl-card { position: absolute; top: 0; width: 367px; height: 235px; pointer-events: none; user-select: none; }
+.tpl-dot { position: absolute; top: 780px; height: 8px; border-radius: 4px; }
+.tpl-dot::before { content: ""; position: absolute; inset: -10px -4px; }   /* 扩大点击范围 */
+.count-tag.one-line { white-space: nowrap; font-size: 10.5px; }
+
+/* ---------- 合上的相册（书本组件：空白书本 + 封皮颜色 + 镂空照片） ---------- */
+.book { position: absolute; }
+.book-layer { position: absolute; inset: 0; }
+.book-layer.tint { mix-blend-mode: multiply; }
+.book.flying { z-index: 10; transform-origin: 0 0; will-change: transform; }
+.book.flying.hinge { transform-origin: 0 50%; backface-visibility: hidden; }
+.fly { position: absolute; inset: 0; z-index: 8; pointer-events: none; }
+
+/* ---------- App 主风格的纸质按钮（导出 / 完成 / 打勾 / 撤销重做） ---------- */
+.pbtn { position: absolute; z-index: 4; display: grid; place-items: center; border: 1.5px solid var(--ink); border-radius: 12px;
+  background: url(../../assets/fig/paper_tex.png) center / 300px, #f4ecdd; background-blend-mode: multiply;
+  color: var(--ink); font: 15px var(--hand); filter: drop-shadow(0 3px 4px rgba(42, 23, 8, .28)); transition: transform .15s var(--out); }
+.pbtn:active { transform: scale(.94); }
+.pbtn svg { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.pbtn.on { background-color: #e9dcc2; }
+.pbtn.pair { display: flex; align-items: center; justify-content: space-between; padding: 0; }
+.pbtn.pair button { flex: 1; height: 100%; display: grid; place-items: center; transition: transform .15s var(--out); }
+.pbtn.pair button:active { transform: scale(.88); }
+.pbtn.pair button.off svg { opacity: .32; }
+.pbtn.pair i { width: 1px; height: 22px; background: rgba(27, 13, 0, .28); }
+
+/* ---------- 封面 / 背景设置：靠左的标题和分组名，用 app 主字体（霞鹜马克手写体），不是系统默认体 ---------- */
+.panel-title { position: absolute; font: 17px var(--hand); color: #2f2c28; white-space: nowrap; }
+.panel-label { position: absolute; font: 14px var(--hand); color: #3a3631; white-space: nowrap; }
+.bg-thumb { box-shadow: 0 1px 3px rgba(42, 23, 8, .16); }
+
+/* ---------- 下方工具栏（封面/背景、素材/编辑/文字）：一整条纸质通栏垫底，图标和文字直接悬浮在上面，不再一个个单独扣白框——和一级菜单底栏同一种做法 ---------- */
+.toolbar-strip { position: absolute; z-index: 3; border-radius: 999px; border: 1.5px solid rgba(27, 13, 0, .58);
+  background: url(../../assets/fig/paper_tex.png) center / 300px, #f4ecdd; background-blend-mode: multiply;
+  filter: drop-shadow(0 4px 10px rgba(42, 23, 8, .2)); }
+.toolbtn { position: absolute; z-index: 4; display: flex; align-items: center; justify-content: center; gap: 7px; background: none; border: none;
+  color: var(--ink); font: 14px var(--hand); transition: transform .15s var(--out); }
+.toolbtn:active { transform: scale(.92); }
+.toolbtn svg { width: 22px; height: 22px; flex: none; }
+/* 导出面板每一行左边的小图标 */
+.icon-chip { position: absolute; display: grid; place-items: center; }
+.icon-chip svg { width: 78%; height: 78%; }
+
+/* ---------- 图片处理面板：页面背景色实心铺满、已选图片与「添加」合并一排、描边、抠图 ---------- */
+.page-bg { position: absolute; }   /* drawPage() 里总是最先插入，DOM 顺序天然垫在照片/文字/贴纸下面 */
+.pe-label { position: absolute; font: 13px var(--hand); color: #4a4439; }
+.pe-pageind { position: absolute; border: 2px solid var(--ink); border-radius: 6px; pointer-events: none; }
+.pe-add-tile { position: absolute; display: grid; place-items: center; border-radius: 6px; border: 1.5px dashed #b5afa3; color: #9a948a; font: 20px var(--sans); background: #f4f2ec; }
+.pe-stroke-dot { position: absolute; border-radius: 50%; background: #fff; }
+.pe-stroke-dot.on { outline: 2px solid var(--ink); outline-offset: 2px; }
+.pe-cutout { position: absolute; border: 0; border-radius: 10px; background: #efe9db; color: var(--ink-2); font: 500 14px var(--sans); }
+.pe-cutout.on { background: #e9dcc2; color: var(--ink); font-weight: 600; }
+
+/* 封面镂空照片的「内凹插槽」：照片垫在这块暗色凹槽上，配合照片自身的内阴影，看起来像嵌进封皮里 */
+.cover-socket { position: absolute; border-radius: 3px; background: linear-gradient(145deg, rgba(0, 0, 0, .38), rgba(0, 0, 0, .1)); }
+
+/* ---------- 编辑页：跨页（当前页在中间，旁边露出另一页的边） ---------- */
+.ed-viewport { position: absolute; overflow: hidden; touch-action: none; }
+.ed-track { position: absolute; left: 0; top: 0; width: 1000px; height: 100%; will-change: transform; }
+.ed-page { position: absolute; overflow: hidden; background: #fafbf8; box-shadow: 0 6px 16px rgba(42, 23, 8, .22), 0 1px 2px rgba(42, 23, 8, .16); cursor: pointer; }
+.ed-page.left { border-radius: 3px 0 0 3px; background-image: linear-gradient(90deg, transparent 90%, rgba(60, 52, 40, .07) 97%, rgba(60, 52, 40, .14)); }
+.ed-page.right { border-radius: 0 3px 3px 0; background-image: linear-gradient(270deg, transparent 90%, rgba(60, 52, 40, .07) 97%, rgba(60, 52, 40, .14)); }
+.fly-page { z-index: 9; transform-origin: 0 0; will-change: transform; }
+.page-ph { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #b9b9b6; font-family: var(--sans); pointer-events: none; }
+.page-ph b { font-weight: 300; font-size: 2.2em; line-height: 1; color: #bdbdba; }
+.page-no { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font: 11px var(--sans); color: #c3c0b8; pointer-events: none; }
+
+/* ---------- 总览下方的缩略图条 ---------- */
+.strip { position: absolute; z-index: 3; border-radius: 14px; background: #fff; box-shadow: 0 4px 14px rgba(42, 23, 8, .18); }
+.strip-view { position: absolute; overflow: hidden; touch-action: pan-y; }
+.strip-view.fade-l.fade-r { -webkit-mask: linear-gradient(90deg, transparent, #000 22px, #000 calc(100% - 22px), transparent); mask: linear-gradient(90deg, transparent, #000 22px, #000 calc(100% - 22px), transparent); }
+.strip-view.fade-l:not(.fade-r) { -webkit-mask: linear-gradient(90deg, transparent, #000 22px); mask: linear-gradient(90deg, transparent, #000 22px); }
+.strip-view.fade-r:not(.fade-l) { -webkit-mask: linear-gradient(90deg, #000 calc(100% - 22px), transparent); mask: linear-gradient(90deg, #000 calc(100% - 22px), transparent); }
+.strip-track { position: absolute; left: 0; top: 0; height: 100%; will-change: transform; }
+.thumb { position: absolute; padding: 0; border-radius: 3px; transition: transform .15s var(--out); }
+.thumb:active { transform: scale(.95); }
+.thumb.cover { position: relative; filter: drop-shadow(0 2px 3px rgba(42, 23, 8, .22)); }   /* 内嵌的小书本用绝对定位，相对这个按钮摆放 */
+.thumb.spread { box-shadow: 0 2px 5px rgba(42, 23, 8, .2); }
+.thumb.spread.on { outline: 2px solid var(--ink); outline-offset: 2px; }
+.thumb-page { position: absolute; overflow: hidden; background: #fafbf8; }
+.thumb-page:first-child { background-image: linear-gradient(90deg, transparent 80%, rgba(60, 52, 40, .12)); }
+.thumb-page:last-child { background-image: linear-gradient(270deg, transparent 80%, rgba(60, 52, 40, .12)); }
+.strip-add { position: absolute; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--ink);
+  background: url(../../assets/fig/paper_tex.png) center / 200px, #f4ecdd; background-blend-mode: multiply;
+  font: 300 22px/1 var(--sans); color: var(--ink); filter: drop-shadow(0 2px 3px rgba(42, 23, 8, .22)); transition: transform .15s var(--out); }
+.strip-add:active { transform: scale(.9); }
+
+/* 封面上的镂空照片：白色相纸边 + 右下错位阴影框（阴影大小随书本缩放，写在 JS 里） */
+.cover-photo { position: absolute; object-fit: cover; border: 2px solid #fffdf8; border-radius: 2px; background: #fffdf8; }
+
+/* hidden 属性优先（有些叠加元素是 display:flex，会把 hidden 盖掉） */
+.album [hidden] { display: none !important; }

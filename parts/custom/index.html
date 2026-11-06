@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>旧日来信 · 定制相册</title>
+  <!-- 公共样式和 bridge 必须先引入，路径不要改 -->
+  <link rel="stylesheet" href="../../shared/tokens.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 整个部分只有这一块 402×874 的屏幕；每一屏由 fidelity.js 用 Figma 导出图 + 热区拼出来 -->
+  <main class="screen album" id="screen" aria-label="旧日来信相册定制">
+    <div class="stage" id="stage"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <input id="picker" class="native-picker" type="file" accept="image/*" multiple />
+
+  <script src="../../shared/bridge.js"></script>
+  <script src="fidelity.js"></script>
+</body>
+</html>

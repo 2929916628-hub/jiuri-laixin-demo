@@ -1,0 +1,127 @@
+/* 我的（parts/mine）：选择器都写在 .screen 里，颜色只用 tokens.css 变量
+   底跟「空间」信件页一样用纸箱内壁；首页 = 寄信人卡（邮票头像 + 邮编格账号）+ 横线信纸菜单；子页 = 纸条卡片 */
+
+@font-face { font-family: "Share Tech Mono"; src: url(../../assets/fonts/ShareTechMono-Regular.ttf) format("truetype"); font-display: swap; }
+
+.screen { background: url(../../assets/fig/wood_light_bg.jpg) center top / cover no-repeat, #5a3a22; }   /* 2026-11-05 换成定制页同款光影木墙（原纸箱底 box_bg.png） */
+
+/* ---------- 页面切换：子页从右侧淡入 320ms --out ---------- */
+.screen .page { position: absolute; inset: 0; visibility: hidden; opacity: 0; transform: translateX(24px); transition: opacity .32s var(--out), transform .32s var(--out), visibility 0s .32s; }
+.screen .page.on { visibility: visible; opacity: 1; transform: none; transition: opacity .32s var(--out), transform .32s var(--out); }
+
+/* 首页进场：卡片与信纸依次上浮淡入 360ms --out（只写 from，落点是元素自己的旋转） */
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+.screen .page.on .rise { animation: rise .36s var(--out) backwards; }
+.screen .page.on .rise.d1 { animation-delay: .08s; }
+
+/* ---------- 标题 ---------- */
+.screen .htitle { position: absolute; right: 30px; top: 74px; margin: 0; font-weight: 400; font-size: 22px; line-height: 32px; color: #F6E9D2; text-shadow: 0 1px 3px rgba(30, 15, 5, .55); }
+.screen .ptitle { position: absolute; left: 0; right: 0; top: 62px; height: 32px; margin: 0; line-height: 32px; text-align: center; font-weight: 400; font-size: 20px; color: #F6E9D2; text-shadow: 0 1px 3px rgba(30, 15, 5, .55); }
+
+/* ---------- 首页：寄信人卡 ---------- */
+.screen .sender { position: absolute; left: 20px; top: 128px; width: 362px; height: 212px; border-radius: 4px; transform: rotate(-1.2deg); box-shadow: 0 10px 24px rgba(42, 23, 8, .28); }
+.screen .sender .tape { position: absolute; left: 124px; top: -15px; width: 118px; height: 29px; transform: rotate(3deg); opacity: .92; }
+
+/* 邮票：齿孔边 = 一排圆孔遮罩 + 中间整块不透明；阴影放外层（遮罩会把阴影一起裁掉） */
+.screen .stamp-wrap { position: absolute; left: 24px; top: 30px; transform: rotate(-3deg); filter: drop-shadow(0 2px 3px rgba(42, 23, 8, .3)); }
+.screen .stamp {
+  width: 100px; height: 120px; background: var(--paper);
+  -webkit-mask: radial-gradient(circle, transparent 3px, #000 3.5px) -5px -5px / 10px 10px, linear-gradient(#000, #000) 5px 5px / 90px 110px no-repeat;
+          mask: radial-gradient(circle, transparent 3px, #000 3.5px) -5px -5px / 10px 10px, linear-gradient(#000, #000) 5px 5px / 90px 110px no-repeat;
+}
+.screen .stamp svg { position: absolute; left: 8px; top: 8px; width: 84px; height: 104px; }
+.screen .sender .pmark { position: absolute; left: 60px; top: 116px; width: 86px; height: 44px; transform: scaleX(-1) rotate(10deg); opacity: .85; pointer-events: none; }
+
+.screen .s-kicker { position: absolute; left: 150px; top: 32px; margin: 0; font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: 3px; color: var(--small); }
+.screen .s-name { position: absolute; left: 150px; top: 50px; margin: 0; font-size: 30px; line-height: 40px; letter-spacing: 2px; color: var(--blue); }
+.screen .s-zip { position: absolute; left: 150px; top: 104px; display: flex; gap: 5px; }
+.screen .s-zip i { width: 20px; height: 20px; border: 1.2px solid rgba(176, 66, 58, .75); font: normal 14px/18px "Share Tech Mono", monospace; text-align: center; color: var(--blue); }
+.screen .s-bio { position: absolute; left: 150px; right: 24px; top: 160px; margin: 0; padding-bottom: 5px; border-bottom: 1px dashed rgba(107, 86, 68, .45); font-family: var(--sans); font-weight: 500; font-size: 13px; color: var(--small); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------- 首页：横线信纸菜单（行高 44 = 横线间距，字压在线上；左边一道红色页边线） ---------- */
+.screen .sheet {
+  position: absolute; left: 18px; top: 368px; width: 366px; padding-bottom: 14px; border-radius: 3px;
+  background: repeating-linear-gradient(to bottom, transparent 0 43px, rgba(43, 53, 102, .2) 43px 44px), url(../../assets/fig/paper_tex.png) center / 420px, var(--paper);
+  background-blend-mode: normal, multiply, normal;
+  transform: rotate(.8deg); box-shadow: 0 10px 24px rgba(42, 23, 8, .28);
+}
+.screen .sheet::before { content: ''; position: absolute; left: 44px; top: 0; bottom: 0; width: 1.2px; background: var(--wax); opacity: .35; }
+.screen .sheet .glabel { display: flex; align-items: flex-end; height: 44px; margin: 0; padding: 0 0 7px 58px; font-size: 14px; color: var(--ink-2); }
+.screen .sheet .glabel span { padding: 0 4px; background: linear-gradient(transparent 55%, rgba(200, 154, 62, .55) 55%); }
+.screen .sheet .row { align-items: flex-end; height: 44px; padding: 0 20px 7px 58px; }
+.screen .sheet .row-t { font-size: 17px; color: var(--ink); }
+.screen .sheet .row .chev { margin-bottom: 2px; }
+.screen .sheet button.row:active { background: rgba(200, 154, 62, .12); }
+
+/* ---------- 子页：纸条卡片 ---------- */
+.screen .card.full {
+  position: absolute; left: 16px; width: 370px; border-radius: 3px;
+  background: url(../../assets/fig/paper_tex.png) center / 400px, var(--card); background-blend-mode: multiply;
+  box-shadow: 0 6px 16px rgba(42, 23, 8, .22);
+}
+
+/* ---------- 列表行（行高 44/48/49） ---------- */
+.screen .row { position: relative; display: flex; align-items: center; width: 100%; height: 45px; padding: 0 20px; text-align: left; }
+.screen .row.h49 { height: 49px; }
+.screen .row.h48 { height: 48px; }
+.screen .row.h44 { height: 44px; }
+.screen .row-t { font-size: 16px; color: var(--ink); }
+.screen .row-v { margin-left: auto; margin-right: 8px; font-family: var(--sans); font-weight: 500; font-size: 14px; color: var(--small); }
+.screen .row-v.ink2 { color: var(--ink-2); }
+.screen .card .row + .row::before { content: ''; position: absolute; left: 20px; right: 20px; top: 0; border-top: 1px dashed rgba(107, 86, 68, .3); }
+.screen .card button.row:active { background: rgba(200, 154, 62, .12); }
+
+/* 手绘箭头（同总入口的 CHEV） */
+.screen .chev {
+  flex: none; width: 18px; height: 18px; margin-left: auto;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231B0D00' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.5 5.5 L15.5 12 L9.5 18.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.screen .row-v + .chev, .screen .perm-st + .chev { margin-left: 0; }
+
+/* ---------- 开关：墨线描边的手绘感，开态灰绿 ---------- */
+.screen .switch { position: relative; flex: none; width: 48px; height: 28px; margin-left: auto; border-radius: 14px; background: var(--paper); border: 2px solid var(--ink); transition: background .16s var(--out), opacity .16s var(--out); }
+.screen .knob { position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--card); border: 2px solid var(--ink); transition: left .22s var(--spring); }
+.screen .switch.on { background: var(--sage); }
+.screen .switch.on .knob { left: 22px; }
+.screen .switch.dis { opacity: .35; }
+
+/* ---------- 系统权限：状态文字 ---------- */
+.screen .perm-st { margin-left: auto; margin-right: 8px; font-family: var(--sans); font-weight: 500; font-size: 13px; color: var(--small); }
+.screen .perm-st.off { color: var(--wax); }
+
+/* 提示：说明小字垫底（同 .jrlx-note） */
+.screen .hint {
+  position: absolute; left: 50%; top: 392px; margin: 0; transform: translateX(-50%); white-space: nowrap;
+  padding: 6px 12px; border-radius: 10px; background: rgba(255, 246, 227, .88);
+  font-family: var(--sans); font-weight: 500; font-size: 13px; color: var(--small);
+}
+
+/* ---------- 注销账号：火漆红手写字 ---------- */
+.screen .quit-btn { display: flex; align-items: center; justify-content: center; height: 63px; font-size: 19px; letter-spacing: 2px; color: var(--wax); }
+.screen .quit-btn:active { background-color: rgba(176, 66, 58, .08); }
+
+/* ---------- 协议文档页：写在横线纸上，行高 = 线距 32 ---------- */
+.screen .doc-body {
+  position: absolute; left: 16px; right: 16px; top: 120px; margin: 0; padding: 12px 22px 20px; border-radius: 3px;
+  background: repeating-linear-gradient(to bottom, transparent 0 43px, rgba(43, 53, 102, .2) 43px 44px) 0 0 / 100% 44px, url(../../assets/fig/paper_tex.png) center / 420px, var(--paper);
+  background-blend-mode: normal, multiply, normal; background-origin: content-box, padding-box, padding-box;
+  box-shadow: 0 6px 16px rgba(42, 23, 8, .22);
+  font-family: var(--sans); font-weight: 500; font-size: 14px; line-height: 44px; color: var(--ink-2);
+}
+.screen .doc-body p { margin: 0; }
+
+/* ---------- 注销确认层：遮罩淡入 200ms，卡片底部升起 320ms --spring ---------- */
+.screen .mask { position: absolute; inset: 0; z-index: 40; background: rgba(27, 13, 0, .35); opacity: 0; visibility: hidden; transition: opacity .2s var(--out), visibility 0s .2s; }
+.screen .mask.on { opacity: 1; visibility: visible; transition: opacity .2s var(--out); }
+.screen .quit-sheet {
+  position: absolute; left: 12px; right: 12px; bottom: 24px; z-index: 41; border-radius: 6px; padding: 22px 20px 16px; text-align: center;
+  background: url(../../assets/fig/paper_tex.png) center / 400px, var(--card); background-blend-mode: multiply;
+  transform: translateY(120%); visibility: hidden; transition: transform .32s var(--spring), visibility 0s .32s;
+}
+.screen .quit-sheet.on { transform: none; visibility: visible; transition: transform .32s var(--spring); }
+.screen .q-title { margin: 0; font-size: 19px; color: var(--ink); }
+.screen .q-sub { margin: 8px 0 16px; font-family: var(--sans); font-weight: 500; font-size: 13px; color: var(--small); }
+.screen .q-danger, .screen .q-cancel { display: block; width: 100%; height: 46px; border-radius: 10px; font-size: 16px; transition: transform .15s var(--out); }
+.screen .q-danger { background: var(--wax); color: var(--cream); }
+.screen .q-cancel { margin-top: 10px; background: var(--paper); border: 1.5px solid var(--ink); color: var(--ink); }
+.screen .q-danger:active, .screen .q-cancel:active { transform: scale(.97); }
