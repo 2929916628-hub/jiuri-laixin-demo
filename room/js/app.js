@@ -10,7 +10,7 @@
 */
 
 import { PanoViewer, uvToAngles, RAD } from './pano.js?v=20261024b';
-import { openComputer, openQQ, warmMemories, players, registerAudioContext } from './devices.js?v=20261106a';
+import { openComputer, openQQ, warmMemories, players, registerAudioContext } from './devices.js?v=20261106b';
 
 const DEG = RAD;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
