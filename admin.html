@@ -7,8 +7,8 @@
   <script>
     (() => {
       const local = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
-      const protectedHost = location.hostname === 'jrlx-ai.2929916628.workers.dev';
-      if (!local && !protectedHost) location.replace('https://jrlx-ai.2929916628.workers.dev/admin.html');
+      const protectedHost = location.hostname === 'jrlx-demo.pages.dev' || location.hostname === 'jrlx-ai.2929916628.workers.dev';
+      if (!local && !protectedHost) location.replace('https://jrlx-demo.pages.dev/admin.html');
     })();
   </script>
   <link rel="stylesheet" href="assets/fonts/lxgw-marker-gothic.css" />

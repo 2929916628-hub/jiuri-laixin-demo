@@ -2,7 +2,9 @@
 
 ## 长期在线地址
 
-手机直接打开：<https://jrlx-ai.2929916628.workers.dev/>
+手机直接打开：<https://jrlx-demo.pages.dev/>
+
+备用入口：<https://jrlx-ai.2929916628.workers.dev/>
 
 GitHub Pages 镜像：<https://2929916628-hub.github.io/jiuri-laixin-demo/>
 
