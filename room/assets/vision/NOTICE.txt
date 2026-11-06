@@ -1,0 +1,9 @@
+Vision runtime notices
+
+TensorFlow.js and the MobileNet model loader are licensed under the Apache
+License, Version 2.0.
+
+MobileNet V1 model: TensorFlow Hub / Google, Apache License 2.0.
+
+The vision files are bundled locally so the online demo does not depend on a
+remote model host at runtime.

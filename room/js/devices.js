@@ -155,8 +155,11 @@ async function frameOf(it) { // 取一张缩小的图（视频取第 0.8 秒）�
 const inflight = new Map(); // 同一份素材只分析一次（进房间时预热、打开电脑时又要，共用一个请求）
 // 服务端共用的分析结果（_serve.py 的 /__data/mem）：电脑上看过的，手机扫码进来直接用，不用再等 AI 看二三十秒
 let sharedMem = null;
-const loadShared = () => (sharedMem ||= fetch('/__data/mem', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
-const putShared = (key, a) => fetch('/__data/mem', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, a }) }).catch(() => {});
+let hostStore = null;
+try { hostStore = window.JRLXStore || (window.parent !== window && window.parent.JRLXStore); } catch (e) {}
+const staticHost = !!(hostStore && hostStore.static);
+const loadShared = () => staticHost ? Promise.resolve({}) : (sharedMem ||= fetch('/__data/mem', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({})));
+const putShared = (key, a) => staticHost ? Promise.resolve() : fetch('/__data/mem', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, a }) }).catch(() => {});
 function analyze(it) {
   if (it.a) return Promise.resolve(it.a);
   const key = cacheKey(it);
@@ -166,7 +169,8 @@ function analyze(it) {
     const shared = await loadShared(), mine = key.startsWith('jrlx.mem./__data/'); // 只有存进服务端的材料，换台设备还是同一个地址
     if (local) { if (mine && !shared[key]) { shared[key] = local; putShared(key, local); } return local; } // 本机早先看过的，顺手传上去
     if (shared[key]) { try { localStorage.setItem(key, JSON.stringify(shared[key])); } catch (e) {} return shared[key]; }
-    const a = await analyzeAI(it);
+    let a = await analyzeAI(it);
+    if (!a) a = await analyzeLocal(it);
     if (a && mine) { shared[key] = a; putShared(key, a); }
     return a;
   })().finally(() => inflight.delete(key)));
@@ -189,6 +193,160 @@ async function analyzeAI(it) {
     } catch (e) { console.warn('[记忆] 分析失败', e); }
   }
   return null;
+}
+
+/* ---------- 静态托管：手机浏览器内做视觉识别，不依赖后台和 API key ---------- */
+let localVisionP = null;
+const scriptP = new Map();
+function loadScript(src) {
+  if (scriptP.has(src)) return scriptP.get(src);
+  const p = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('视觉模型脚本没加载出来'));
+    document.head.appendChild(s);
+  });
+  scriptP.set(src, p);
+  return p;
+}
+function localVisionModel() {
+  if (!localVisionP) {
+    localVisionP = (async () => {
+      await loadScript('assets/vision/tf.min.js');
+      await loadScript('assets/vision/mobilenet.min.js');
+      if (!window.tf || !window.mobilenet) throw new Error('视觉模型没有初始化');
+      const modelUrl = new URL('assets/vision/mobilenet/model.json', location.href).href;
+      return window.mobilenet.load({ version: 1, alpha: 1.0, modelUrl });
+    })().catch((e) => {
+      console.warn('[记忆] 本地视觉模型不可用', e);
+      localVisionP = null;
+      return null;
+    });
+  }
+  return localVisionP;
+}
+
+const VISION_RULES = [
+  {
+    tag: '鸟', sound: 'birds',
+    re: /bird|jay|magpie|chickadee|robin|bulbul|toucan|hornbill|hummingbird|kite|vulture|ostrich|flamingo|pelican|albatross|parrot|cockatoo|lorikeet|macaw|peacock|quail|partridge|grouse|jacamar|bee eater/i,
+    sense: { 清晨: '叶子还带着夜里的湿气，枝头先传来几声轻叫。', 上午: '枝叶把光筛得很细，鸟在枝间轻轻换了换脚。', 中午: '日头落在叶背上，偶尔一声鸟叫，把午后叫得更静。', 午后: '叶子把午后的光筛得很碎，枝头传来两声轻叫。', 傍晚: '天色慢慢收下来，鸟叫一声短，一声长。', 夜里: '天黑以后只剩叶子的响动，远处偶尔掠过一翅。' }
+  },
+  {
+    tag: '水', sound: 'waves',
+    re: /seashore|lakeside|ocean|reef|coral|geyser|fountain|waterfall|sandbar|breakwater|pier|canoe|gondola|lakeshore|river|water/i,
+    sense: { 清晨: '水声还没醒透，一下一下，慢慢推到岸边。', 上午: '水面上有很细的亮光，风一吹就碎开了。', 中午: '水面白得发亮，潮气贴着皮肤慢慢浮上来。', 午后: '水声一直没有停，像谁在远处反复翻一页纸。', 傍晚: '水面把最后一点天光揉碎，风里带着潮湿的味道。', 夜里: '黑下来的水还在响，一阵近，一阵远。' }
+  },
+  {
+    tag: '街', sound: 'street',
+    re: /car|taxi|bus|truck|traffic|street|convertible|jeep|minibus|limousine|van|motor|scooter|bicycle|cab/i,
+    sense: { 清晨: '街面刚被洒过水，车轮压过去，声音湿漉漉的。', 上午: '远处的车一辆接一辆，喇叭声隔着楼传过来。', 中午: '阳光把路面照得发白，车声在热气里变得很钝。', 午后: '车流不断，玻璃上反着一层晃动的光。', 傍晚: '路灯亮起来，轮胎碾过地面的声音慢了下来。', 夜里: '偶尔有车从楼下经过，灯光扫过墙面又消失。' }
+  },
+  {
+    tag: '吃的', sound: 'canteen',
+    re: /pizza|plate|cake|espresso|restaurant|dining table|hotdog|bagel|pretzel|ice cream|banana|orange|lemon|strawberry|pineapple|broccoli|cauliflower|mushroom|meat|bread|corn|pepper|apple|food/i,
+    sense: { 清晨: '热气刚冒起来，杯沿和碗边都有一点温。', 上午: '空气里有食物的香味，混着桌边轻轻的说话声。', 中午: '饭菜的热气浮上来，勺子碰到碗沿响了一下。', 午后: '桌面还留着一点余温，甜味慢慢散在空气里。', 傍晚: '灯亮以后，香味显得更近，也更容易让人饿。', 夜里: '厨房里只剩很轻的动静，余味还浮在空气里。' }
+  },
+  {
+    tag: '猫', sound: 'summer_day',
+    re: /tabby|tiger cat|siamese|persian cat|egyptian cat|cat/i,
+    sense: { 清晨: '它把身子团成一小块，呼吸轻得几乎听不见。', 上午: '阳光移到脚边，它也慢慢挪过去了一点。', 中午: '屋里很静，只剩均匀的呼吸和风扇的轻响。', 午后: '它半眯着眼，尾巴偶尔在地上扫一下。', 傍晚: '窗外的光暗下来，它抬头看了很久。', 夜里: '黑暗里两点眼睛亮了一下，又安静下去。' }
+  },
+  {
+    tag: '狗', sound: 'summer_day',
+    re: /dog|retriever|terrier|spaniel|shepherd|poodle|husky|malamute|corgi|collie|pug|chihuahua|dalmatian|schnauzer|dingo/i,
+    sense: { 清晨: '爪子在地面上嗒嗒走过，尾巴先替它打了招呼。', 上午: '它跑过一小段路，又回头停下来等你。', 中午: '太阳晒得地面发亮，它趴在阴影边上喘气。', 午后: '它把鼻子贴在门边，外面的声音都听得清清楚楚。', 傍晚: '风里有熟悉的味道，它忽然抬起头，耳朵也竖起来。', 夜里: '它听见楼下的脚步，低低地哼了一声。' }
+  },
+  {
+    tag: '植物', sound: 'wind',
+    re: /flower|daisy|sunflower|rose|orchid|vase|pot|garden|greenhouse|mushroom|grass|tree|leaf|plant|wood/i,
+    sense: { 清晨: '叶尖还挂着一点湿气，风碰过去，整片影子都在动。', 上午: '阳光从叶缝里落下来，桌面上多了一层碎光。', 中午: '绿意被日头照得更深，空气里有一点土和水的味道。', 午后: '风从叶间穿过去，沙沙声很轻，却一直没有停。', 傍晚: '叶片的颜色慢慢沉下来，边缘还留着最后一点亮。', 夜里: '看不清颜色了，只听见叶子偶尔互相碰一下。' }
+  },
+  {
+    tag: '天空', sound: 'wind',
+    re: /sky|cloud|mountain|cliff|valley|lakeside|seashore|sunset|alp|volcano/i,
+    sense: { 清晨: '天边的颜色还很淡，风先一步吹过来。', 上午: '云影慢慢移过去，地面上的光也跟着换了地方。', 中午: '天光太亮，远处的轮廓几乎要融在一起。', 午后: '风从很远的地方过来，带着一点干燥的味道。', 傍晚: '最后一点亮落在天边，颜色一层一层收下去。', 夜里: '天完全暗了，只剩风从很高的地方经过。' }
+  },
+  {
+    tag: '屋里', sound: 'fan',
+    re: /computer|monitor|keyboard|mouse|laptop|desk|bookshelf|bookcase|wardrobe|chest|table lamp|television|screen|projector|printer/i,
+    sense: { 清晨: '窗帘还没完全拉开，机器低低地响着。', 上午: '桌面上的光慢慢移过去，键盘边缘落了一层亮。', 中午: '屋里比外面安静，只有风扇和电流的轻响。', 午后: '机箱嗡嗡地热着，屏幕上的光映在桌边。', 傍晚: '房间先暗下来，屏幕显得比白天更亮。', 夜里: '屏幕是屋里最亮的地方，风扇一直轻轻地转。' }
+  }
+];
+
+function imageStats(img) {
+  const c = document.createElement('canvas'); c.width = 48; c.height = 48;
+  const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, 48, 48);
+  const d = g.getImageData(0, 0, 48, 48).data;
+  let lum = 0, warm = 0, green = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], gg = d[i + 1], b = d[i + 2];
+    lum += r * .2126 + gg * .7152 + b * .0722;
+    warm += r - b;
+    green += gg - (r + b) / 2;
+  }
+  const n = d.length / 4;
+  return { lum: lum / n, warm: warm / n, green: green / n };
+}
+function timeWord(it, stats) {
+  let hour = null;
+  const m = String(it.name || '').match(/(?:20)?(\d{2})(\d{2})(\d{2})[_-](\d{2})(\d{2})(\d{2})/);
+  if (m) hour = +m[4];
+  if (hour == null && it.lastModified) {
+    const d = new Date(it.lastModified); if (!Number.isNaN(d.getTime())) hour = d.getHours();
+  }
+  if (hour == null) {
+    if (stats.lum < 48) return '夜里';
+    if (stats.warm > 24 && stats.lum < 130) return '傍晚';
+    if (stats.lum > 175) return '中午';
+    return '午后';
+  }
+  if (hour >= 5 && hour < 9) return '清晨';
+  if (hour >= 9 && hour < 12) return '上午';
+  if (hour >= 12 && hour < 14) return '中午';
+  if (hour >= 14 && hour < 18) return '午后';
+  if (hour >= 18 && hour < 20) return '傍晚';
+  return '夜里';
+}
+function localAnalysis(preds, stats, tod) {
+  const labels = (preds || []).map((p) => String(p.className || '').split(',')[0].trim());
+  const rule = VISION_RULES.find((r) => labels.some((x) => r.re.test(x)));
+  let sound = rule && rule.sound;
+  let tag = rule && rule.tag;
+  if (!sound) {
+    if (stats.lum < 55) sound = 'summer_night';
+    else if (stats.green > 10) sound = 'wind';
+    else if (stats.warm > 30) sound = 'summer_day';
+    else sound = 'street';
+    tag = stats.green > 10 ? '日常' : stats.lum < 55 ? '夜色' : '旧时光';
+  }
+  const sense = rule && rule.sense[tod]
+    ? rule.sense[tod]
+    : (tod === '夜里'
+      ? '屋里只剩很轻的电流声，窗外的光慢慢停在墙上。'
+      : '光从旁边慢慢移过来，空气里留着一点那天熟悉的味道。');
+  const tags = [tag];
+  if (stats.green > 12) tags.push('绿意');
+  if (stats.lum > 160) tags.push('日光');
+  if (stats.warm > 25) tags.push('暖色');
+  return { tags: [...new Set(tags)].slice(0, 6), tod, sense, sound, local: true };
+}
+async function analyzeLocal(it) {
+  const data = await frameOf(it);
+  const img = new Image();
+  img.src = data;
+  await new Promise((ok, no) => { img.onload = ok; img.onerror = no; });
+  if (img.decode) { try { await img.decode(); } catch (e) {} }
+  const stats = imageStats(img);
+  const model = await localVisionModel();
+  let preds = [];
+  if (model) {
+    try { preds = await model.classify(img, 8); } catch (e) { console.warn('[记忆] 本地识别失败', e); }
+  }
+  const a = localAnalysis(preds, stats, timeWord(it, stats));
+  try { localStorage.setItem(cacheKey(it), JSON.stringify(a)); } catch (e) {}
+  return a;
 }
 const toItems = (media) => (media.length
   ? media.map((m, i) => ({ src: m.url, kind: m.type && m.type.startsWith('video') ? 'video' : 'img', name: m.name, lastModified: m.lastModified,
@@ -314,13 +472,15 @@ export function openComputer({ media = [], onClose } = {}) {
     focus.style.setProperty('--fs', (r.width / (br.width * 0.5)).toFixed(3));
     void focus.offsetWidth; focus.classList.add('on'); veil.classList.add('on'); fromEl.classList.add('lifted');
     // 感官描写和环境音：分析好了就浮现；AI 还在看的话先放一个「……」
-    if (!it.a && window.JRLXTwin) window.JRLXTwin.aiStatus().then((st) => { if (st.vision && !it.a && foc && foc.it === it) { sense.textContent = '……'; sense.classList.add('in', 'think'); } });
+    if (!it.a) { sense.textContent = staticHost ? '正在辨认这张照片……' : '……'; sense.classList.add('in', 'think'); }
     analyze(it).then((a) => {
       if (!foc || foc.it !== it) return;
       sense.classList.remove('think');
       if (!a) { sense.classList.remove('in'); return; }
       foc.timers.push(setTimeout(() => {
         if (a.sense) { sense.textContent = a.sense; sense.classList.add('in'); }
+        const cap = $('.pf-cap', layer);
+        if (cap && (!it.cap || /^(IMG|Screenshot|image)/i.test(it.cap))) cap.textContent = (a.tags || []).join(' · ');
         if (a.sound) { sound.textContent = '♪ ' + SOUNDS[a.sound]; sound.classList.add('in'); ambience.play(a.sound); }
       }, hold ? 700 : 450));
     });

@@ -119,11 +119,12 @@ window.JRLXStore = (() => {
         blob: file,
         type: file.type || 'application/octet-stream',
         name: file.name || 'file',
-        size: file.size || 0
+        size: file.size || 0,
+        lastModified: file.lastModified || Date.now()
       }));
       const url = URL.createObjectURL(file);
       urlCache.set(id, url);
-      return { id, url, type: file.type || 'application/octet-stream', name: file.name || 'file', size: file.size || 0 };
+      return { id, url, type: file.type || 'application/octet-stream', name: file.name || 'file', size: file.size || 0, lastModified: file.lastModified || Date.now() };
     },
 
     list: async () => {

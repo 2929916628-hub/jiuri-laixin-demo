@@ -111,6 +111,9 @@
   /* ================= 本地 AI 服务（_serve.py 的 /__ai，key 只在电脑本地） ================= */
   let statusP = null;
   function aiStatus() {
+    let hostStore = null;
+    try { hostStore = window.JRLXStore || (window.parent !== window && window.parent.JRLXStore); } catch (e) {}
+    if (hostStore && hostStore.static) return Promise.resolve({ enabled: false, vision: false, chat: false, localVision: true });
     if (!statusP) statusP = fetch('/__ai/status', { cache: 'no-store' }).then(r => r.ok ? r.json() : { enabled: false }).catch(() => ({ enabled: false }));
     return statusP;
   }
