@@ -75,10 +75,13 @@ img { -webkit-user-drag: none; user-select: none; }
 }
 .device.land .screen { width: 874px; height: 402px; }
 
-@media (max-width: 760px), (max-height: 560px) {
-  .stage { gap: 0; background: #0d0906; }
-  .guide { display: none; }
-  .device { border-radius: 0; box-shadow: none; }
+@media (max-width: 760px), (max-height: 560px), (hover: none) and (pointer: coarse) {
+  html, body { width: 100%; height: 100%; background: #0d0906; overscroll-behavior: none; }
+  body { position: fixed; inset: 0; }
+  .stage { inset: 0; width: 100vw; height: 100dvh; gap: 0; padding: 0; background: #0d0906; }
+  .guide { display: none !important; }
+  .device { border-radius: 0 !important; box-shadow: none !important; background: #0d0906; }
+  .screen { touch-action: none; }
 }
 
 /* ---------- 视图 ---------- */
