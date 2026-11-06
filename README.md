@@ -8,6 +8,8 @@ GitHub Pages 镜像：<https://2929916628-hub.github.io/jiuri-laixin-demo/>
 
 线上版不依赖这台电脑开机，主流程、房间、声音和新建空间都能体验。新建的空间与上传素材只保存在当前浏览器（IndexedDB），不会跨手机同步。照片理解和数字人对话由 Cloudflare Worker 调用 DeepSeek，DeepSeek key 只保存在 Worker Secret 中。
 
+数据后台只允许管理员账号 `jrlx-admin` 访问。随机密码保存在本机 `~/.jrlx_admin_password.txt`，未授权和错误密码都会返回 401。
+
 ## 第一次打开
 
 1. 解压后**保持文件夹名 `11_交互Demo_App` 不要改**（地址里要用到它），放在任意位置都行。

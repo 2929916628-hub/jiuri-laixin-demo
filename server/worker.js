@@ -35,13 +35,61 @@ function json(data, status, request, env) {
   });
 }
 
+function constantTimeEqual(a, b) {
+  const x = String(a || ''), y = String(b || '');
+  const n = Math.max(x.length, y.length);
+  let diff = x.length ^ y.length;
+  for (let i = 0; i < n; i++) diff |= (x.charCodeAt(i) || 0) ^ (y.charCodeAt(i) || 0);
+  return diff === 0;
+}
+
+function adminAuthorized(request, env) {
+  const raw = request.headers.get('Authorization') || '';
+  if (!raw.startsWith('Basic ')) return false;
+  try {
+    const decoded = atob(raw.slice(6));
+    const cut = decoded.indexOf(':');
+    if (cut < 0) return false;
+    const user = decoded.slice(0, cut);
+    const pass = decoded.slice(cut + 1);
+    const expectedUser = env.ADMIN_USERNAME || 'jrlx-admin';
+    const expectedPass = String(env.ADMIN_PASSWORD || '');
+    if (!expectedPass) return false;
+    return constantTimeEqual(user, expectedUser) && constantTimeEqual(pass, expectedPass);
+  } catch (e) {
+    return false;
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(request, env) });
-    if (!allowedOrigin(request, env) && request.method !== 'GET') {
+    if (!allowedOrigin(request, env) && !['GET', 'HEAD'].includes(request.method)) {
       return json({ error: '这个来源不允许调用' }, 403, request, env);
+    }
+
+    if (url.pathname === '/admin.html' || url.pathname === '/admin') {
+      if (!adminAuthorized(request, env)) {
+        return new Response('需要管理员账号密码', {
+          status: 401,
+          headers: {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Cache-Control': 'no-store',
+            'WWW-Authenticate': 'Basic realm="Jiuri Laixin Admin", charset="UTF-8"'
+          }
+        });
+      }
+      const asset = await env.ASSETS.fetch(request);
+      return new Response(asset.body, {
+        status: asset.status,
+        headers: {
+          ...Object.fromEntries(asset.headers),
+          'Cache-Control': 'no-store',
+          'Vary': 'Authorization'
+        }
+      });
     }
 
     if (request.method === 'GET' && (url.pathname === '/' || url.pathname === '/status' || url.pathname === '/__ai/status')) {
@@ -108,7 +156,7 @@ export default {
       return json({ content, usage: data.usage || null, model }, 200, request, env);
     }
 
-    if (request.method === 'GET' && env.ASSETS) return env.ASSETS.fetch(request);
+    if (['GET', 'HEAD'].includes(request.method) && env.ASSETS) return env.ASSETS.fetch(request);
     return json({ error: 'Not found' }, 404, request, env);
   }
 };

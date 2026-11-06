@@ -7,7 +7,9 @@ preview_urls = false
 DEEPSEEK_BASE = "https://api.deepseek.com"
 VISION_MODEL = "deepseek-flash"
 CHAT_MODEL = "deepseek-flash"
+ADMIN_USERNAME = "jrlx-admin"
 
 [assets]
 directory = "../"
 binding = "ASSETS"
+run_worker_first = true

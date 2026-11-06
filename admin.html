@@ -4,6 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>旧日来信 · 数据后台</title>
+  <script>
+    (() => {
+      const local = ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+      const protectedHost = location.hostname === 'jrlx-ai.2929916628.workers.dev';
+      if (!local && !protectedHost) location.replace('https://jrlx-ai.2929916628.workers.dev/admin.html');
+    })();
+  </script>
   <link rel="stylesheet" href="assets/fonts/lxgw-marker-gothic.css" />
   <link rel="stylesheet" href="assets/fonts/noto-sans-sc.css" />
   <style>
