@@ -38,7 +38,7 @@
 
 ## 数字分身和照片分析用的 AI（可选）
 
-线上版会用手机浏览器内置的本地视觉模型识别上传照片，生成一段感官描写并自动加入环境声；模型约 18MB，第一次会稍慢，之后会使用浏览器缓存。数字分身仍会用示例人物「阿哲」和内置规则回话。
+线上版通过 Cloudflare Worker 连接 DeepSeek：照片理解、聊天记录分析、数字人人设和对话都可以使用大模型。DeepSeek key 只存在 Worker Secret 中，不会进入网页。后端暂时连不上时会自动退回手机本地视觉识别与内置回话规则。
 
 想用真 AI：双击 `配置AI.cmd`（Mac 在终端运行 `python3 _ai_setup.py`），在弹出的小窗口里粘贴**你自己的** DeepSeek key（https://platform.deepseek.com）。
 key 只存在你电脑用户目录的 `.jrlx_ai.json`，不在这个文件夹里，打包转发也不会带上。

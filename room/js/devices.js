@@ -187,10 +187,9 @@ async function analyzeAI(it) {
   let url; try { url = await frameOf(it); } catch (e) { return null; }
   for (const max_tokens of [1600, 3200]) { // deepseek-flash 先想再答，额度给少了正文会是空的；空了就加额度再试一次
     try {
-      const r = await fetch('/__ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'vision', temperature: 0.8, max_tokens,
-        messages: [{ role: 'user', content: [{ type: 'image_url', image_url: { url } }, { type: 'text', text: VISION }] }] }) });
-      const d = await r.json(); if (!r.ok || d.error) throw new Error(d.error);
-      const m = String(d.content || '').replace(/```(?:json)?/g, '').match(/\{[\s\S]*\}/); if (!m) continue;
+      const out = await window.JRLXTwin.aiChat('vision', [{ role: 'user', content: [{ type: 'image_url', image_url: { url } }, { type: 'text', text: VISION }] }],
+        { temperature: 0.8, max_tokens, timeout: 90000 });
+      const m = String(out || '').replace(/```(?:json)?/g, '').match(/\{[\s\S]*\}/); if (!m) continue;
       const j = JSON.parse(m[0]);
       const a = { tags: (j.tags || []).map(String).slice(0, 6), tod: String(j.tod || ''), sense: String(j.sense || '').slice(0, 40), sound: SOUNDS[j.sound] ? j.sound : null, ai: true };
       try { localStorage.setItem(cacheKey(it), JSON.stringify(a)); } catch (e) {}

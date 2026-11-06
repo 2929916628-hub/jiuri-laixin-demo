@@ -1,0 +1,9 @@
+name = "jrlx-ai"
+main = "worker.js"
+compatibility_date = "2026-11-06"
+preview_urls = false
+
+[vars]
+DEEPSEEK_BASE = "https://api.deepseek.com"
+VISION_MODEL = "deepseek-flash"
+CHAT_MODEL = "deepseek-flash"

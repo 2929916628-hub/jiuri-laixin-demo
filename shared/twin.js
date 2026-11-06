@@ -110,17 +110,24 @@
 
   /* ================= 本地 AI 服务（_serve.py 的 /__ai，key 只在电脑本地） ================= */
   let statusP = null;
+  function aiBase() {
+    try { return String(window.JRLX_AI_BASE || (window.parent !== window && window.parent.JRLX_AI_BASE) || '').replace(/\/+$/, ''); } catch (e) { return ''; }
+  }
+  function aiURL(path) {
+    const base = aiBase();
+    return base ? base + path : path;
+  }
   function aiStatus() {
     let hostStore = null;
     try { hostStore = window.JRLXStore || (window.parent !== window && window.parent.JRLXStore); } catch (e) {}
-    if (hostStore && hostStore.static) return Promise.resolve({ enabled: false, vision: false, chat: false, localVision: true });
-    if (!statusP) statusP = fetch('/__ai/status', { cache: 'no-store' }).then(r => r.ok ? r.json() : { enabled: false }).catch(() => ({ enabled: false }));
+    if (hostStore && hostStore.static && !aiBase()) return Promise.resolve({ enabled: false, vision: false, chat: false, localVision: true });
+    if (!statusP) statusP = fetch(aiURL('/status'), { cache: 'no-store' }).then(r => r.ok ? r.json() : { enabled: false }).catch(() => ({ enabled: false }));
     return statusP;
   }
   async function aiCall(kind, messages, { temperature = 0.7, max_tokens = 800, json = false, timeout = 60000 } = {}) {
     const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), timeout);
     try {
-      const r = await fetch('/__ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+      const r = await fetch(aiURL('/chat'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
         body: JSON.stringify({ kind, messages, temperature, max_tokens, json }) });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || d.error) throw new Error(d.error || ('HTTP ' + r.status));
@@ -306,7 +313,7 @@
         const st = await aiStatus();
         if (st.chat) {
           try {
-            const out = await aiCall('chat', [{ role: 'system', content: systemPrompt() }, ...log.slice(-12)], { temperature: 0.9, max_tokens: 120, timeout: 20000 });
+            const out = await aiCall('chat', [{ role: 'system', content: systemPrompt() }, ...log.slice(-12)], { temperature: 0.9, max_tokens: 1000, timeout: 60000 });
             const lines = out.split(/\n+/).map(x => x.replace(/^[\d.、\-\s"“”「」]+|["“”「」]+$/g, '').trim()).filter(Boolean).slice(0, 2);
             if (lines.length) {
               log.push({ role: 'assistant', content: lines.join('\n') });
@@ -319,5 +326,5 @@
     };
   }
 
-  window.JRLXTwin = { LEVEL, PRESET, SAMPLE_URL: 'assets/twin/sample_chat.mp4', aiStatus, extractFrames, recognize, buildPersona, createChat, sleep };
+  window.JRLXTwin = { LEVEL, PRESET, SAMPLE_URL: 'assets/twin/sample_chat.mp4', aiStatus, aiChat: aiCall, extractFrames, recognize, buildPersona, createChat, sleep };
 })();
