@@ -8,8 +8,9 @@ const DEFAULT_ORIGINS = [
 
 function allowedOrigin(request, env) {
   const origin = request.headers.get('Origin') || '';
+  const ownOrigin = new URL(request.url).origin;
   const extra = String(env.ALLOWED_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean);
-  return DEFAULT_ORIGINS.includes(origin) || extra.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
+  return origin === ownOrigin || DEFAULT_ORIGINS.includes(origin) || extra.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin);
 }
 
 function cors(request, env) {
@@ -107,6 +108,7 @@ export default {
       return json({ content, usage: data.usage || null, model }, 200, request, env);
     }
 
+    if (request.method === 'GET' && env.ASSETS) return env.ASSETS.fetch(request);
     return json({ error: 'Not found' }, 404, request, env);
   }
 };

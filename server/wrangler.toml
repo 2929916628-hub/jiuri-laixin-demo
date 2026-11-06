@@ -7,3 +7,7 @@ preview_urls = false
 DEEPSEEK_BASE = "https://api.deepseek.com"
 VISION_MODEL = "deepseek-flash"
 CHAT_MODEL = "deepseek-flash"
+
+[assets]
+directory = "../"
+binding = "ASSETS"
