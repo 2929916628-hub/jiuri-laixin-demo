@@ -96,7 +96,12 @@ function unlockAudio() {
   if (c) { const b = c.createBuffer(1, 1, 22050), s = c.createBufferSource(); s.buffer = b; s.connect(c.destination); s.start(0); }
   if (unlocked) return;
   unlocked = true;
-  Object.values(players).forEach((p) => { if (!p.src || p.src === SILENT) { p.src = SILENT; p.play().then(() => p.pause()).catch(() => { unlocked = false; }); } });
+  Object.values(players).forEach((p) => {
+    if (!p.src || p.src === SILENT) {
+      p.src = SILENT;
+      p.play().then(() => { if (p.src === SILENT) p.pause(); }).catch(() => { unlocked = false; });
+    }
+  });
 }
 ['touchend', 'pointerup', 'click', 'keydown'].forEach((ev) => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
 
@@ -460,6 +465,8 @@ export function openComputer({ media = [], onClose } = {}) {
   let foc = null; // { it, hold, ring: [], timer }
   function openFocus(it, fromEl, hold) {
     foc = { it, hold, ring: [], timers: [], at: performance.now() };
+    // 第一次分析还没结束时先起一层很轻的风声，保证在用户这次点击里完成音频解锁；识别完再换成匹配的声音。
+    if (staticHost && !it.a) ambience.play('wind');
     hint.classList.add('gone');
     fMedia.innerHTML = it.kind === 'video' ? `<video src="${esc(it.src)}" autoplay muted loop playsinline></video>` : `<img src="${esc(it.src)}" alt="">`;
     $('.pf-date', layer).textContent = it.date; $('.pf-cap', layer).textContent = it.cap || '';
